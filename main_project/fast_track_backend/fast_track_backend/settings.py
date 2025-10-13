@@ -77,7 +77,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'fast_track_db',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'testing123SQL',
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
