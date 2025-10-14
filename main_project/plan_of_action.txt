@@ -114,6 +114,12 @@ CREATE TABLE users (
     FOREIGN KEY (priority_id) REFERENCES priority_categories(priority_id)
 );
 
+CREATE TABLE roles (
+    role_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(15) NOT NULL,
+
+);
+
 CREATE TABLE document_types (
     doctype_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
@@ -143,7 +149,7 @@ CREATE TABLE requests (
 CREATE TABLE priority_categories (
     priority_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     priority_level INTEGER NOT NULL,
-    category ENUM('pregnant', 'pwd', 'senior')
+    category VARCHAR(30)
 );
 
 CREATE TABLE payments (
