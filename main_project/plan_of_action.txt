@@ -26,15 +26,12 @@ Pages in Website (Kiosk):
     - Counter for number of copies (Minimum 1, Maximum (?))
     - Text Field for Additional Notes
     - Submit request button
-    - If there are no errors, the submit button leads to and displays REQUEST SUBMIT SUCCESSFUL (4a) for a few seconds
-      and leads to DOCUMENT REQUEST RECEIPT (4b)
+    - If there are no errors, the submit button leads to and displays REQUEST SUBMIT SUCCESSFUL (4a) for a few seconds and leads to DOCUMENT REQUEST RECEIPT (4b)
       a. REQUEST SUBMIT SUCCESSFUL
         - No logic required except for timing
       b. DOCUMENT REQUEST RECEIPT
-        - Displays relevant information (Request Number, Date, Requester's Name, Requested Documents and Copy Count,
-          and Processing Time)
-        - Has button for Printing Receipt (Applicable only for Kiosk) and returning to menu which leads back to
-          SERVICE MENU (2)
+        - Displays relevant information (Request Number, Date, Requester's Name, Requested Documents and Copy Count, and Processing Time)
+        - Has button for Printing Receipt (Applicable only for Kiosk) and returning to menu which leads back to SERVICE MENU (2)
     - Has a button for going back to SERVICE MENU (2)
 5. MULTIPLE DOCUMENT REQUEST
     - Has input fields (First Name, Middle Name, Last Name, Student ID, Phone Number, Email)
@@ -50,34 +47,35 @@ Pages in Website (Kiosk):
         - Displays requester details if applicable otherwise will show n/a (Request Number, Date, Requester's Name)
         - Displays request details (Documents Requested with Copy Count and Purpose)
         - Displays processing time
-        - Has a button for printing receipt (Applicable only for Kiosk) and returning to menu which leads back to
-          SERVICE MENU (2)
+        - Has a button for printing receipt (Applicable only for Kiosk) and returning to menu which leads back to SERVICE MENU (2)
 6. PRIORITY LANE [--SUBJECT TO CHANGE--]
-    - Has buttons for priority categories (Currently: Pregnant, PWD, Senior Citizen), selecting a category will lead
-      to PRIORITY LANE DOCUMENT
+    - Has buttons for priority categories (Currently: Pregnant, PWD, Senior Citizen), selecting a category will lead to PRIORITY LANE DOCUMENT
 
 Django Apps (Kiosk):
 1. Requests
     - Handles requests made by users, status history, etc.
     Models:
-        - DocumentRequest
-        - RequestedDocument
-        - RequestStatusHistory
+        - Request
+        - RequestedDocuments
+        - RequestHistory
+        - RequestStatus
+        - RequestPurpose
 2. Users (Used in both Kiosk and Admin sides)
     - Handles user-relevant information and history (For admins, new students, alumni, and non-students)
     Models:
-        - Requester
-        - Admin
+        - User
+        - Role
+        - RoleStatus
+        - PriorityCategory
 3. Payments
     - Handles payments, payment history, and other business logic
     Models:
         - Payment
-        - PaymentHistory
+        - PaymentMethod
 4. Notifications
     - Handles notification functions (Email and SMS)
     Models:
-        - Email
-        - SMS
+        - Notification
 5. DocCatalog
     - Handles information regarding document types available
     Models:
@@ -98,31 +96,38 @@ Django Apps (Admin):
 Database Schema (fast_track_db):
 CREATE TABLE users (
     user_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    priority_id INTEGER,
+    role_id INTEGER NOT NULL,
+    priority_id INTEGER, -- Nullable because some users don't have priority privilege
+    status_id INTEGER, -- Nullable because this only applies for non-requester users
     first_name VARCHAR(35) NOT NULL,
     middle_name VARCHAR(35),
-    last_name VARCHAR(35),
-    student_number VARCHAR(15),
-    email_address VARCHAR(50) UNIQUE,
-    mobile_number VARCHAR(20),
+    last_name VARCHAR(35), -- Nullable because some foreign students might not use last names
+    student_number VARCHAR(15), -- Nullable because not all users have student numbers (Like admins, alumni, etc.)
+    email_address VARCHAR(50) UNIQUE, -- Nullable because not all users have emails
+    mobile_number VARCHAR(20), -- Nullable because not all users have mobile numbers
     password VARCHAR(255),
-    user_type ENUM('admin', 'staff', 'requester') DEFAULT 'requester',
-    is_enabled BOOLEAN DEFAULT TRUE,
     last_login DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    update_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (priority_id) REFERENCES priority_categories(priority_id)
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES roles(role_id),
+    FOREIGN KEY (priority_id) REFERENCES priority_categories(priority_id),
+    FOREIGN KEY (status_id) REFERENCES role_statuses(status_id)
 );
 
 CREATE TABLE roles (
     role_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(15) NOT NULL,
+    name VARCHAR(15) NOT NULL, --roles include: admin, registrar, accounting, and requester
+    description VARCHAR(50)
+);
 
+CREATE TABLE role_statuses (
+    status_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    description VARCHAR(30) --statuses include: active, inactive, deleted
 );
 
 CREATE TABLE document_types (
     doctype_id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL, --document types include: Transcript of Records, Transfer Credentials, Certification of Enrollment, GWA, Medium of Instruction, Grades
     description VARCHAR(100),
     price DECIMAL(10,2) DEFAULT 0.00,
     processing_time VARCHAR(30),
@@ -133,17 +138,47 @@ CREATE TABLE document_types (
 CREATE TABLE requests (
     request_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     user_id INTEGER NOT NULL,
-    doctype_id INTEGER NOT NULL,
-    status ENUM('requested', 'processing', 'released', 'received') DEFAULT 'requested',
-    purpose ENUM(<add purposes here>) [--SUBJECT TO CHANGE--],
+    purpose_id INTEGER NOT NULL,
+    status_id INTEGER NOT NULL,
     copy_amount INTEGER DEFAULT 1 CHECK (copy_amount > 0),
-    total_price DECIMAL(10,2),
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     released_at DATETIME,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (purpose_id) REFERENCES request_purposes(purpose_id),
+    FOREIGN KEY (status_id) REFERENCES request_statuses(status_id)
+);
+
+CREATE TABLE request_purposes (
+    purpose_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    description VARCHAR(30) -- includes: 'reference', 'further studies', 'board exam', 'evaluation', 'others'
+);
+
+CREATE TABLE request_statuses (
+    status_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    description VARCHAR(30) -- includes: 'requested', 'processing', 'released', 'received'
+);
+
+CREATE TABLE requested_documents (
+    reqdoc_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    request_id INTEGER NOT NULL,
+    doctype_id INTEGER NOT NULL,
+    copy_amount INTEGER DEFAULT 1 CHECK (copy_amount > 0),
+    FOREIGN KEY (request_id) REFERENCES requests(request_id) ON DELETE CASCADE,
     FOREIGN KEY (doctype_id) REFERENCES document_types(doctype_id)
+);
+
+CREATE TABLE request_history (
+    history_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    request_id INTEGER NOT NULL,
+    status_id INTEGER NOT NULL,
+    user_id INTEGER, -- The admin/staff who commits the change
+    remarks TEXT,
+    changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES requests(request_id) ON DELETE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES request_statuses(status_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE priority_categories (
@@ -155,22 +190,43 @@ CREATE TABLE priority_categories (
 CREATE TABLE payments (
     payment_id INTEGER PRIMARY KEY AUTO_INCREMENT,
     request_id INTEGER NOT NULL,
+    method_id INTEGER NOT NULL,
+    verified_by INTEGER,
     amount DECIMAL(10,2),
-    method ENUM(<add payment methods here>),
     status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
     reference_no VARCHAR(50),
+    verified_at DATETIME
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (request_id) REFERENCES requests(request_id)
+    updated at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES requests(request_id),
+    FOREIGN KEY (method_id) REFERENCES payment_methods(method_id),
+    FOREIGN KEY (verified_by) REFERENCES users(user_id)
+);
+
+CREATE TABLE payment_methods (
+    method_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(30) NOT NULL, -- includes: 'cash', 'check', 'bdo online', 'bdo otc', 'metrobank online', 'metrobank otc'
+    description VARCHAR(50)
+);
+
+CREATE TABLE notifications (
+    notif_id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    user_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('email', 'sms'), -- Might be useful to add system type notifications as well
+    reference_table VARCHAR(50),
+    reference_id INTEGER,
+    status ENUM('pending', 'sent', 'failed') DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    sent_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 Considerations for the System:
-- Asides from hosting costs, the university will also need to have people on standby for maintenance which means we'll
-have to create a cohesive guide both for the admin users and other developers that will be in charge of system
-maintenance.
-- Make sure to soft-delete logging history only, not hard-delete.
+- Asides from hosting costs, the university will also need to have people on standby for maintenance which means we'll have to create a cohesive guide both for the admin users and other developers that will be in charge of system maintenance. With this in mind, the system can remain future-proof even when, we, the original developers aren't around anymore.
+- Make sure to soft-delete any information and archive it in the database, not hard-delete.
 
 Questions for Development:
 - What are the different type of users and what are the differences between each of them?
 - What are the payment methods accepted by AUF Accounting?
-- What are the different purposes for document requesting? Are there ever any special cases/purposes where the purpose
-might require an "others" field?
+- What are the different purposes for document requesting? Are there ever any special cases/purposes where the purpose might require an "others" field?
