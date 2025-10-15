@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'notifications',
     'doccatalog',
     'kioskapi',
+    'adminapi',
+    'logs',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +88,7 @@ DATABASES = {
         'PASSWORD': 'testing123SQL',
         'HOST': 'localhost',
         'PORT': '3306',
+        'TIME_ZONE': 'Asia/Manila',
     }
 }
 
