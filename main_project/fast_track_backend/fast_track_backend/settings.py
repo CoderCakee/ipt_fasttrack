@@ -31,12 +31,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
     'users',
     'requests',
     'payments',
@@ -45,6 +39,12 @@ INSTALLED_APPS = [
     'kioskapi',
     'adminapi',
     'logs',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -76,7 +76,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'fast_track_backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
@@ -88,7 +87,6 @@ DATABASES = {
         'PASSWORD': 'testing123SQL',
         'HOST': 'localhost',
         'PORT': '3306',
-        'TIME_ZONE': 'Asia/Manila',
     }
 }
 

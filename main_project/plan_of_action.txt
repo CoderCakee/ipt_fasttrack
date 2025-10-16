@@ -225,8 +225,10 @@ CREATE TABLE notifications (
 Considerations for the System:
 - Asides from hosting costs, the university will also need to have people on standby for maintenance which means we'll have to create a cohesive guide both for the admin users and other developers that will be in charge of system maintenance. With this in mind, the system can remain future-proof even when, we, the original developers aren't around anymore.
 - Make sure to soft-delete any information and archive it in the database, not hard-delete.
+- NOTE: For document types, price and expected processing time currently have placeholder values (100.0 and 3-5 working days)
 
 Questions for Development:
-- What are the different type of users and what are the differences between each of them?
-- What are the payment methods accepted by AUF Accounting?
-- What are the different purposes for document requesting? Are there ever any special cases/purposes where the purpose might require an "others" field?
+- What are the different type of users and what are the differences between each of them? Are there any other university staff that might make use of this system? (Listed user types include: Administrator - In charge of overseeing the management and able to access all information, Registrar Staff - Able to access all information related to managing requests, notifications, document types, etc., Accounting (If applicable) - Able to access payment related-information, Requester - Users that request documents (encompasses current students, alumni, non-students))
+- Are there ever any special cases where the document request purpose might require an "others" field?
+- Does this list cover all the documents that can be requested from the University Registrar? (Listed documents include: Transcript of Records, Transfer Credentials, Certification of Enrollment, GWA, Medium of Instruction, Grades)
+- What is the price and expected processing time of each document type?

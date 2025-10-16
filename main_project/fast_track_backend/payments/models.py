@@ -1,15 +1,17 @@
 from django.db import models
-from users.model import User
-from requests.model import Request
 
 # Create your models here.
 class PaymentMethod(models.Model):
     method_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=30)
-    description = models.CharField(max_length=50)
+    name = models.CharField(max_length=30, null=False)
+    description = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        app_label = 'payments'
+        db_table = 'payment_methods'
 
 '''
 CREATE TABLE payment_methods (
@@ -27,18 +29,40 @@ class Payment(models.Model):
     ]
 
     payment_id = models.AutoField(primary_key=True)
-    request_id = models.ForeignKey(Request, on_delete=models.PROTECT)
-    method_id = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT)
-    verified_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    request_id = models.ForeignKey(
+        'requests.Request',
+        on_delete=models.PROTECT,
+        null=False
+    )
+    method_id = models.ForeignKey(
+        PaymentMethod,
+        on_delete=models.PROTECT,
+        null=False
+    )
+    verified_by = models.ForeignKey(
+        'users.User',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
     reference_no = models.CharField(max_length=50)
-    verified_at = models.DateTimeField()
+    verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Payment#{self.payment_id}"
+
+    class Meta:
+        app_label = 'payments'
+        db_table = 'payments'
+
 '''
 CREATE TABLE payments (
     payment_id INTEGER PRIMARY KEY AUTO_INCREMENT,
