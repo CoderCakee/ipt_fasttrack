@@ -32,18 +32,21 @@ class Payment(models.Model):
     request_id = models.ForeignKey(
         'requests.Request',
         on_delete=models.PROTECT,
-        null=False
+        null=False,
+        db_column='request_id',
     )
     method_id = models.ForeignKey(
         PaymentMethod,
         on_delete=models.PROTECT,
-        null=False
+        null=False,
+        db_column='method_id',
     )
     verified_by = models.ForeignKey(
         'users.User',
         on_delete=models.PROTECT,
         null=True,
-        blank=True
+        blank=True,
+        db_column='user_id'
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(

@@ -69,9 +69,9 @@ CREATE TABLE role_statuses (
 
 class User(models.Model):
     user_id = models.AutoField(primary_key=True)
-    role_id = models.ForeignKey(Role, on_delete=models.PROTECT, default=1)
-    priority_id = models.ForeignKey(PriorityCategory, null=True, blank=True, on_delete=models.SET_NULL)
-    status_id = models.ForeignKey(RoleStatus, null=True, blank=True, on_delete=models.SET_NULL)
+    role_id = models.ForeignKey(Role, on_delete=models.PROTECT, default=1, db_column='role_id')
+    priority_id = models.ForeignKey(PriorityCategory, null=True, blank=True, on_delete=models.SET_NULL, db_column='priority_id')
+    status_id = models.ForeignKey(RoleStatus, null=True, blank=True, on_delete=models.SET_NULL, db_column='status_id')
     first_name = models.CharField(max_length=35)
     middle_name = models.CharField(max_length=35, null=True, blank=True)
     last_name = models.CharField(max_length=35, null=True, blank=True)
