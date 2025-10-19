@@ -85,6 +85,13 @@ Django Apps (Kiosk):
 
 Pages in Website (Admin):
 1. DASHBOARD
+    - Initial landing page when entering admin dashboard
+    - Has a count of total requests, pending requests, completed requests, and active users
+    - Displays statistics of weekly request volumes and document type distribution
+    - Displays the three latest requests made in the system
+    - Displays warnings about requests and payments (And other system warnings)
+    - Has a side panel with buttons that lead to REQUEST MANAGEMENT (2), PAYMENT TRACKING (3), NOTIFICATIONS (4), USER MANAGEMENT (5), and REPORTS AND LOGS (6)
+    -
 2. REQUEST MANAGEMENT
 3. PAYMENT TRACKING
 4. NOTIFICATIONS
