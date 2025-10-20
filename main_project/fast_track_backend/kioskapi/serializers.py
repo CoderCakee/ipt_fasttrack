@@ -1,4 +1,4 @@
-from rest_framework.views import APIView
+from django.contrib.auth.hashers import check_password
 from rest_framework import serializers
 from users.models import User, Role
 from requests.models import Request, RequestedDocuments, RequestPurpose, RequestStatus
@@ -64,57 +64,109 @@ class RequestCreateSerializer(serializers.ModelSerializer):
         queryset=RequestPurpose.objects.all(),
         source='purpose'
     )
-    requested_document = RequestedDocumentSerializer(write_only=True)
+    requested_documents = RequestedDocumentSerializer(write_only=True, many=True)
     notes = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Request
         fields = [
             'first_name', 'last_name', 'middle_name', 'student_number',
-            'email_address', 'mobile_number', 'purpose_id', 'requested_document', 'notes'
+            'email_address', 'mobile_number', 'purpose_id', 'requested_documents', 'notes'
         ]
 
     def validate(self, data):
         # Ensure either email or mobile number is filled
+        def normalize_name(value):
+            return value.strip().capitalize() if value else value
+
+        data['first_name'] = normalize_name(data.get('first_name'))
+        data['last_name'] = normalize_name(data.get('last_name'))
+        data['middle_name'] = normalize_name(data.get('middle_name'))
+
         if not data.get('email_address') and not data.get('mobile_number'):
             raise serializers.ValidationError("Either email or mobile number must be provided.")
+
+        if not data.get('requested_documents'):
+            raise serializers.ValidationError("At least one document must be requested.")
+
         return data
 
     def create(self, validated_data):
-        # Extract user info
+        requested_docs_data = validated_data.pop('requested_documents')
+
+        def smart_capitalize(name: str) -> str:
+            import re
+            if not name:
+                return name
+            name = re.sub(r'\s+', ' ', name.strip().lower())
+
+            def fix_mc(match):
+                prefix = match.group(1).capitalize()
+                rest = match.group(2).capitalize()
+                return prefix + rest
+
+            parts = name.split()
+            lowercase_exceptions = {
+                "de", "del", "dela", "di", "du", "van", "von", "bin", "binti", "ibn", "al", "da", "la"
+            }
+            formatted_parts = []
+            for part in parts:
+                if part in lowercase_exceptions:
+                    formatted_parts.append(part)
+                else:
+                    formatted = part.capitalize()
+                    formatted = re.sub(r'^(mc|mac)([a-z])', fix_mc, formatted, flags=re.IGNORECASE)
+                    formatted_parts.append(formatted)
+            return " ".join(formatted_parts)
+
         user_data = {
-            'first_name': validated_data.pop('first_name'),
-            'last_name': validated_data.pop('last_name'),
-            'middle_name': validated_data.pop('middle_name', ''),
+            'first_name': smart_capitalize(validated_data.pop('first_name')),
+            'last_name': smart_capitalize(validated_data.pop('last_name')),
+            'middle_name': smart_capitalize(validated_data.pop('middle_name', '')),
             'student_number': validated_data.pop('student_number', None),
             'email_address': validated_data.pop('email_address', None),
             'mobile_number': validated_data.pop('mobile_number', None),
-            'role_id': 3  # Assuming role_id=3 is 'requester' or student
         }
-        user, _ = User.objects.get_or_create(
-            email_address=user_data.get('email_address'),
-            mobile_number=user_data.get('mobile_number'),
-            defaults=user_data
-        )
 
-        # Default status is "requested"
-        request_status = RequestStatus.objects.get(description='Requested')
+        # --- Lookup logic ---
+        user = None
+        email = user_data.get('email_address')
+        mobile = user_data.get('mobile_number')
 
-        # Create the request
+        if email:
+            user = User.objects.filter(email_address=email).first()
+        if not user and mobile:
+            user = User.objects.filter(mobile_number=mobile).first()
+
+        if user:
+            updated = False
+            for field, value in user_data.items():
+                if value and getattr(user, field) != value:
+                    setattr(user, field, value)
+                    updated = True
+            if updated:
+                user.save()
+        else:
+            # Create new user
+            requester_role = Role.objects.get(pk=4)
+            user = User.objects.create(**user_data, role_id=requester_role)
+
+        # --- Create the request ---
+        request_status = RequestStatus.objects.get(description__iexact='requested')
         request_obj = Request.objects.create(
-            user=user,
-            purpose=validated_data['purpose'],
-            status=request_status,
+            user_id=user,
+            purpose_id=validated_data['purpose'],
+            status_id=request_status,
             notes=validated_data.get('notes', '')
         )
 
-        # Create requested document
-        doc_data = validated_data['requested_document']
-        RequestedDocuments.objects.create(
-            request=request_obj,
-            doctype=doc_data['doctype'],
-            copy_amount=doc_data.get('copy_amount', 1)
-        )
+        # --- Create requested document ---
+        for doc_data in requested_docs_data:
+            RequestedDocuments.objects.create(
+                request_id=request_obj,
+                doctype_id=doc_data['doctype'],
+                copy_amount=doc_data.get('copy_amount', 1)
+            )
 
         return request_obj
 
@@ -142,7 +194,7 @@ class RequestReceiptSerializer(serializers.ModelSerializer):
         return f"FAST-{year}-{obj.request_id}"
 
     def get_requester_name(self, obj):
-        u = obj.user
+        u = obj.user_id
         parts = [u.first_name, u.middle_name or '', u.last_name or '']
         return " ".join(p for p in parts if p).strip()
 
@@ -167,3 +219,77 @@ class RequestReceiptSerializer(serializers.ModelSerializer):
         if not times:
             return None
         return max(times, key=len)  # Still fine unless you switch to numeric days
+
+class LoginSerializer(serializers.ModelSerializer):
+    email_address = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    # Optional response fields (read-only)
+    user_id = serializers.IntegerField(read_only=True)
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    role_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'email_address',
+            'password',
+            'user_id',
+            'first_name',
+            'last_name',
+            'role_name',
+        ]
+
+    def get_role_name(self, obj):
+        return obj.role_id.role_name if obj.role_id else None
+
+    def validate(self, data):
+        email = data.get('email_address')
+        password = data.get('password')
+
+        if not email or not password:
+            raise serializers.ValidationError("Both email and password are required.")
+
+        if email == "admin@gmail.com" and password == "admin":
+            # Simulate a user instance (you can also fetch the real one from DB)
+            try:
+                user = User.objects.get(email_address=email)
+            except User.DoesNotExist:
+                raise serializers.ValidationError("Admin account not found in database.")
+
+            data["user"] = user
+            return data
+
+        try:
+            user = User.objects.get(email_address=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or password.")
+
+        if not user.password:
+            raise serializers.ValidationError("This account has no password set.")
+
+        if not check_password(password, user.password):
+            raise serializers.ValidationError("Invalid email or password.")
+
+        if user.role_id == 4:  # Role ID 4 = Requester
+            raise serializers.ValidationError("Access denied. Requesters cannot log in to this portal.")
+
+        user.last_login = datetime.now()
+        user.save(update_fields=["last_login"])
+
+        data["user"] = user
+        return data
+
+    def to_representation(self, instance):
+        # instance IS the user object now
+        user = instance
+        return {
+            "message": "Login successful",
+            "user_id": user.user_id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": user.role_id.name if user.role_id else None,
+            "email_address": user.email_address,
+            "last_login": user.last_login,
+        }

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CheckRequestNumberView, CheckRequestByStudentView ,GetRequestDetailsView, RequestReceiptView, RequestDocumentView
+from .views import CheckRequestNumberView, CheckRequestByStudentView ,GetRequestDetailsView, RequestReceiptView, RequestDocumentView, LoginView
 
 '''urlpatterns = [
     path('check-request-number/<int:request_id>/', CheckRequestNumberView, name='check-request-number'),
@@ -13,4 +13,9 @@ urlpatterns = [
     #Request Document
     path('request-create/', RequestDocumentView, name='request-create'),
     path('request-receipt/<int:request_id>/', RequestReceiptView, name='request-receipt'),
+    #Multi-Document Request
+    path('multi-request-create/', RequestDocumentView, name='multi-request-create'),
+    path('multi-request-receipt/<int:request_id>/', RequestReceiptView, name='multi-request-receipt'),
+    #Login
+    path('login/', LoginView, name='login'),
 ]

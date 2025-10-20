@@ -48,8 +48,7 @@ Pages in Website (Kiosk):
         - Displays request details (Documents Requested with Copy Count and Purpose)
         - Displays processing time
         - Has a button for printing receipt (Applicable only for Kiosk) and returning to menu which leads back to SERVICE MENU (2)
-6. PRIORITY LANE [--SUBJECT TO CHANGE--]
-    - Has buttons for priority categories (Currently: Pregnant, PWD, Senior Citizen), selecting a category will lead to PRIORITY LANE DOCUMENT
+6. PRIORITY LANE [--SUBJECT TO REMOVE--]
 
 Django Apps (Kiosk):
 1. Requests
@@ -91,7 +90,6 @@ Pages in Website (Admin):
     - Displays the three latest requests made in the system
     - Displays warnings about requests and payments (And other system warnings)
     - Has a side panel with buttons that lead to REQUEST MANAGEMENT (2), PAYMENT TRACKING (3), NOTIFICATIONS (4), USER MANAGEMENT (5), and REPORTS AND LOGS (6)
-    -
 2. REQUEST MANAGEMENT
 3. PAYMENT TRACKING
 4. NOTIFICATIONS
