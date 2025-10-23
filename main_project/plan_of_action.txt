@@ -90,11 +90,49 @@ Pages in Website (Admin):
     - Displays the three latest requests made in the system
     - Displays warnings about requests and payments (And other system warnings)
     - Has a side panel with buttons that lead to REQUEST MANAGEMENT (2), PAYMENT TRACKING (3), NOTIFICATIONS (4), USER MANAGEMENT (5), and REPORTS AND LOGS (6)
+    - Has an interactable profile at the top right, possibly leading to another page
+
 2. REQUEST MANAGEMENT
+    - Has a search bar that the admin can use to find requests (Can search by name, ID, or request number)
+    - Has a dropdown filter using request status
+    - Displays document requests in cards, each containing request number, full name, documents requested, date submitted, status and each card has a button for a detailed view of the request leading to REQUEST DETAIL VIEW (2A)
+      a. REQUEST DETAIL VIEW
+        - Opens a window showing request details like request number, status, full name, student ID, email, mobile number, documents requested, status of request
+        - Has a button for changing the status to processing
+        - Has a button for changing the status to released
+        - Should probably have a button for changing the status to request received and document received as well
+
 3. PAYMENT TRACKING
+    - Displays statistics like revenue, pending payments, how many students paid today, and how many payments failed
+    - Has a search bar that the admin can use to find requests by payments (Can search by name, ID, or request number)
+    - Has a dropdown filter using payment status
+    - Has a button for exporting data (probably in .csv or .xlsx)
+    - Displays payments in cards, each containing payment number, request number, full name, payment method, date paid, transaction ID (?), total amount, payment status and the card has a button for changing the status of the payment (currently only has button to change the status to paid but should have button for other statuses as well). Each card also has a button for the detailed view leading to PAYMENT DETAIL VIEW (3A)
+      a. PAYMENT DETAIL VIEW
+        - Opens a window showing payment details like payment number, request number, full name, total amount, payment method, status
+
 4. NOTIFICATIONS
+    - Has three buttons that switch between SEND NOTIFICATION (4A), NOTIFICATION HISTORY (4B), and NOTIFICATION TEMPLATES (4C)
+      a. SEND NOTIFICATION
+        - A form that has a field for notification type (dropdown), recipient, request number, template to be used, subject, and message
+        - Has a button for sending immediately (probably also needs to have a scheduled message feature)
+        - Has a button for sending notification
+      b. NOTIFICATION HISTORY
+        - Displays notification history in cards each containing the subject of the notification, recipient, sent date, status if pending, and the message
+        - Should probably also have a search feature like the others
+      c. NOTIFICATION TEMPLATES
+        - Displays templates in cards showing the subject and the message template
+        - Should have an add template feature
+
 5. USER MANAGEMENT
+    - Has a button for managing roles leading to ?
+    - Has a button for adding a user
+    - Displays system users in cards with information like full name, role, status, email address, what department they belong in, last login time, when the user was created, and each card has a button for deactivating the user, resetting the password, editing the user, and deleted the user
+
 6. REPORTS AND LOGS
+    - Has three buttons that switch between REPORTS (6A), ANALYTICS (6B), and SYSTEM LOGS (6C)
+      a. REPORTS
+        - Has a
 
 Django Apps (Admin):
 
@@ -230,6 +268,7 @@ CREATE TABLE notifications (
 Considerations for the System:
 - Asides from hosting costs, the university will also need to have people on standby for maintenance which means we'll have to create a cohesive guide both for the admin users and other developers that will be in charge of system maintenance. With this in mind, the system can remain future-proof even when, we, the original developers aren't around anymore.
 - Make sure to soft-delete any information and archive it in the database, not hard-delete.
+- Some security issues (check Django security documentation)
 - NOTE: For document types, price and expected processing time currently have placeholder values (100.0 and 3-5 working days)
 
 Questions for Development:

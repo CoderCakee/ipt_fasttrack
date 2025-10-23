@@ -1,10 +1,6 @@
 from django.urls import path
 from .views import CheckRequestNumberView, CheckRequestByStudentView ,GetRequestDetailsView, RequestReceiptView, RequestDocumentView, LoginView
 
-'''urlpatterns = [
-    path('check-request-number/<int:request_id>/', CheckRequestNumberView, name='check-request-number'),
-]'''
-
 urlpatterns = [
     #Check Status
     path('check-request-number/', CheckRequestNumberView, name='check-request-number'),

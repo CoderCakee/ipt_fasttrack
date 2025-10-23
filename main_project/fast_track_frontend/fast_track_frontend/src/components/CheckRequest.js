@@ -12,11 +12,13 @@ const CheckRequest = () => {
   const [studentNumber, setStudentNumber] = useState("");
   const [requestData, setRequestData] = useState(null);
   const [error, setError] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0); // For cycling requests
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setRequestData(null);
+    setCurrentIndex(0);
 
     try {
       if (mode === "number") {
@@ -28,7 +30,7 @@ const CheckRequest = () => {
         const getRes = await axios.get(
           `${API_BASE}/api/check-request-details/${postRes.data.request_id}/`
         );
-        setRequestData(getRes.data);
+        setRequestData({ requests: [getRes.data] }); // Normalize single request
       } else {
         // 🔹 Lookup by Student Info
         const postRes = await axios.post(`${API_BASE}/api/check-request-by-student/`, {
@@ -47,6 +49,25 @@ const CheckRequest = () => {
       }
     }
   };
+
+  const handleNext = () => {
+    if (!requestData || !requestData.requests) return;
+    setCurrentIndex((prev) => (prev + 1) % requestData.requests.length);
+  };
+
+  const handlePrev = () => {
+    if (!requestData || !requestData.requests) return;
+    setCurrentIndex(
+      (prev) =>
+        (prev - 1 + requestData.requests.length) % requestData.requests.length
+    );
+  };
+
+  // Helper to get the currently displayed request
+  const currentRequest =
+    requestData && requestData.requests
+      ? requestData.requests[currentIndex]
+      : requestData;
 
   return (
     <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
@@ -146,7 +167,7 @@ const CheckRequest = () => {
       {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
 
       {/* 🔸 Request Info Display */}
-      {requestData && (
+      {currentRequest && (
         <div
           style={{
             marginTop: "2rem",
@@ -158,26 +179,32 @@ const CheckRequest = () => {
         >
           <h3>Request Details</h3>
           <p>
-            <strong>Request Number:</strong> {requestData.request_number}
+            <strong>Request Number:</strong> {currentRequest.request_number}
           </p>
           <p>
-            <strong>Name:</strong> {requestData.first_name} {requestData.last_name}
+            <strong>Name:</strong>{" "}
+            {requestData?.student
+              ? `${requestData.student.first_name} ${requestData.student.last_name}`
+              : `${currentRequest.first_name} ${currentRequest.last_name}`}
           </p>
           <p>
-            <strong>Student Number:</strong> {requestData.student_number}
+            <strong>Student Number:</strong>{" "}
+            {requestData?.student
+              ? requestData.student.student_number
+              : currentRequest.student_number}
           </p>
           <p>
-            <strong>Date Requested:</strong> {requestData.date_requested}
+            <strong>Date Requested:</strong> {currentRequest.date_requested}
           </p>
           <p>
-            <strong>Status:</strong> {requestData.request_status}
+            <strong>Status:</strong> {currentRequest.request_status}
           </p>
 
-          {requestData.documents && requestData.documents.length > 0 && (
+          {currentRequest.documents && currentRequest.documents.length > 0 && (
             <>
               <h4>Documents</h4>
               <ul>
-                {requestData.documents.map((doc, index) => (
+                {currentRequest.documents.map((doc, index) => (
                   <li key={index}>
                     {doc.doctype_name} - Copies: {doc.copy_amount} - Processing:{" "}
                     {doc.processing_time}
@@ -185,6 +212,43 @@ const CheckRequest = () => {
                 ))}
               </ul>
             </>
+          )}
+
+          {/* 🔁 Navigation (only if multiple requests) */}
+          {requestData?.requests?.length > 1 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "1rem",
+              }}
+            >
+              <button
+                onClick={handlePrev}
+                style={{
+                  padding: "0.5rem 1rem",
+                  borderRadius: "5px",
+                  backgroundColor: "#eee",
+                  cursor: "pointer",
+                }}
+              >
+                ◀ Previous
+              </button>
+              <span>
+                {currentIndex + 1} of {requestData.requests.length}
+              </span>
+              <button
+                onClick={handleNext}
+                style={{
+                  padding: "0.5rem 1rem",
+                  borderRadius: "5px",
+                  backgroundColor: "#eee",
+                  cursor: "pointer",
+                }}
+              >
+                Next ▶
+              </button>
+            </div>
           )}
         </div>
       )}

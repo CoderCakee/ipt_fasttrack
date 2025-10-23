@@ -5,16 +5,36 @@ from requests.models import Request, RequestedDocuments, RequestPurpose, Request
 from doccatalog.models import DocumentType
 from datetime import datetime
 
-class RequestedDocumentSerializer(serializers.ModelSerializer):
+class RequestedDocumentCheckSerializer(serializers.ModelSerializer):
     doctype_id = serializers.PrimaryKeyRelatedField(
         queryset=DocumentType.objects.filter(is_enabled=True),
-        source='doctype'
+    )
+    copy_amount = serializers.IntegerField(min_value=1, default=1)
+    doctype_name = serializers.CharField(source='doctype_id.name', read_only=True)
+    processing_time = serializers.CharField(source='doctype_id.processing_time', read_only=True)
+
+    class Meta:
+        model = RequestedDocuments
+        fields = [
+            'doctype_id',
+            'copy_amount',
+            'doctype_name',
+            'processing_time',
+        ]
+
+class RequestedDocumentCreateSerializer(serializers.ModelSerializer):
+    doctype_id = serializers.PrimaryKeyRelatedField(
+        queryset=DocumentType.objects.filter(is_enabled=True),
+        source='doctype',
     )
     copy_amount = serializers.IntegerField(min_value=1, default=1)
 
     class Meta:
         model = RequestedDocuments
-        fields = ['doctype_id', 'copy_amount']
+        fields = [
+            'doctype_id',
+            'copy_amount',
+        ]
 
 class CheckRequestNumberSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user_id.first_name', read_only=True)
@@ -23,7 +43,7 @@ class CheckRequestNumberSerializer(serializers.ModelSerializer):
     request_number = serializers.SerializerMethodField()
     date_requested = serializers.DateTimeField(source='created_at', format='%B %d, %Y %I:%M %p')
     request_status = serializers.CharField(source='status_id.description', read_only=True)
-    documents = RequestedDocumentSerializer(source='requesteddocuments_set', many=True, read_only=True)
+    documents = RequestedDocumentCheckSerializer(source='requesteddocuments_set', many=True, read_only=True)
 
     class Meta:
         model = Request
@@ -51,7 +71,6 @@ class CheckRequestByStudentSerializer(serializers.Serializer):
     student_number = serializers.CharField(max_length=15)
 
 class RequestCreateSerializer(serializers.ModelSerializer):
-    # User info (first name, last name, etc.)
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True)
     middle_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -59,12 +78,11 @@ class RequestCreateSerializer(serializers.ModelSerializer):
     email_address = serializers.EmailField(write_only=True, required=False, allow_blank=True)
     mobile_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
-    # Document info
     purpose_id = serializers.PrimaryKeyRelatedField(
         queryset=RequestPurpose.objects.all(),
         source='purpose'
     )
-    requested_documents = RequestedDocumentSerializer(write_only=True, many=True)
+    requested_documents = RequestedDocumentCreateSerializer(write_only=True, many=True)
     notes = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -75,7 +93,6 @@ class RequestCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
-        # Ensure either email or mobile number is filled
         def normalize_name(value):
             return value.strip().capitalize() if value else value
 
@@ -218,13 +235,13 @@ class RequestReceiptSerializer(serializers.ModelSerializer):
         times = [d.doctype_id.processing_time for d in docs if d.doctype_id.processing_time]
         if not times:
             return None
-        return max(times, key=len)  # Still fine unless you switch to numeric days
+        return max(times, key=len)
 
 class LoginSerializer(serializers.ModelSerializer):
     email_address = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
 
-    # Optional response fields (read-only)
+    #Only for testing
     user_id = serializers.IntegerField(read_only=True)
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
@@ -252,7 +269,6 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Both email and password are required.")
 
         if email == "admin@gmail.com" and password == "admin":
-            # Simulate a user instance (you can also fetch the real one from DB)
             try:
                 user = User.objects.get(email_address=email)
             except User.DoesNotExist:
@@ -272,7 +288,7 @@ class LoginSerializer(serializers.ModelSerializer):
         if not check_password(password, user.password):
             raise serializers.ValidationError("Invalid email or password.")
 
-        if user.role_id == 4:  # Role ID 4 = Requester
+        if user.role_id == 4:
             raise serializers.ValidationError("Access denied. Requesters cannot log in to this portal.")
 
         user.last_login = datetime.now()
@@ -282,7 +298,6 @@ class LoginSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        # instance IS the user object now
         user = instance
         return {
             "message": "Login successful",
@@ -293,3 +308,8 @@ class LoginSerializer(serializers.ModelSerializer):
             "email_address": user.email_address,
             "last_login": user.last_login,
         }
+
+'''
+Serializers To Make:
+- 
+'''

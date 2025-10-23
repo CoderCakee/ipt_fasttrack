@@ -2,8 +2,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from requests.models import Request, RequestPurpose, RequestStatus, RequestedDocuments
-from users.models import User, Role
+from requests.models import Request, RequestPurpose
+from users.models import User
 from doccatalog.models import DocumentType
 from .serializers import CheckRequestNumberSerializer, CheckRequestByStudentSerializer, RequestCreateSerializer, RequestReceiptSerializer, LoginSerializer
 from datetime import datetime
@@ -30,7 +30,7 @@ def CheckRequestNumberView(request):
 def CheckRequestByStudentView(request):
     serializer = CheckRequestByStudentSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     data = serializer.validated_data
     first_name = data['first_name'].strip()
@@ -44,17 +44,26 @@ def CheckRequestByStudentView(request):
             student_number__iexact=student_number,
         )
     except User.DoesNotExist:
-        return Response({'error': 'No matching stduent found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'No matching student found.'}, status=status.HTTP_404_NOT_FOUND)
 
+    # Fetch all document requests by this user (latest first)
     requests = Request.objects.filter(user_id=user.user_id).order_by('-created_at')
 
     if not requests.exists():
-        return Response({'error': 'Request not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'No document requests found.'}, status=status.HTTP_404_NOT_FOUND)
 
-    latest_request = requests.first()
-    req_serializer = CheckRequestNumberSerializer(latest_request)
+    # Serialize all requests for the frontend to display one at a time
+    req_serializer = CheckRequestNumberSerializer(requests, many=True)
 
-    return Response(req_serializer.data, status=status.HTTP_200_OK)
+    return Response({
+        'student': {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'student_number': user.student_number,
+        },
+        'total_requests': requests.count(),
+        'requests': req_serializer.data
+    }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def GetRequestDetailsView(request, request_id):
@@ -99,7 +108,6 @@ def RequestReceiptView(request, request_id):
     serializer = RequestReceiptSerializer(req)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 @api_view(['POST'])
 def LoginView(request):
     serializer = LoginSerializer(data=request.data)
@@ -107,11 +115,9 @@ def LoginView(request):
     if serializer.is_valid():
         user = serializer.validated_data['user']
 
-        # Update last login timestamp
         user.last_login = datetime.now()
         user.save(update_fields=['last_login'])
 
-        # Return the serialized representation (handled by to_representation)
         return Response(serializer.to_representation(user), status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
