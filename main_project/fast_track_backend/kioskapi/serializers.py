@@ -309,7 +309,12 @@ class LoginSerializer(serializers.ModelSerializer):
             "last_login": user.last_login,
         }
 
-'''
-Serializers To Make:
-- 
-'''
+class AdminDashboardSerializer(serializers.Serializer):
+    total_requests = serializers.IntegerField()
+    pending_requests = serializers.IntegerField()
+    completed_requests = serializers.IntegerField()
+    active_users = serializers.IntegerField()
+    weekly_requests = serializers.ListField()
+    document_distribution = serializers.ListField()
+    latest_requests = serializers.ListField()
+    warnings = serializers.ListField()

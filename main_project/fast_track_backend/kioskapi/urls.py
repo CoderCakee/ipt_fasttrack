@@ -1,17 +1,22 @@
 from django.urls import path
-from .views import CheckRequestNumberView, CheckRequestByStudentView ,GetRequestDetailsView, RequestReceiptView, RequestDocumentView, LoginView
+from .views import (check_request_number_view, check_request_by_student_view, get_request_details_view,
+                    request_receipt_view, request_document_view, login_view,
+                    refresh_token_view, admin_dashboard_view)
 
 urlpatterns = [
     #Check Status
-    path('check-request-number/', CheckRequestNumberView, name='check-request-number'),
-    path('check-request-by-student/', CheckRequestByStudentView, name='check-request-by-student'),
-    path('check-request-details/<int:request_id>/', GetRequestDetailsView, name='get-request-details'),
+    path('check-request-number/', check_request_number_view, name='check-request-number'),
+    path('check-request-by-student/', check_request_by_student_view, name='check-request-by-student'),
+    path('check-request-details/<int:request_id>/', get_request_details_view, name='get-request-details'),
     #Request Document
-    path('request-create/', RequestDocumentView, name='request-create'),
-    path('request-receipt/<int:request_id>/', RequestReceiptView, name='request-receipt'),
+    path('request-create/', request_document_view, name='request-create'),
+    path('request-receipt/<int:request_id>/', request_receipt_view, name='request-receipt'),
     #Multi-Document Request
-    path('multi-request-create/', RequestDocumentView, name='multi-request-create'),
-    path('multi-request-receipt/<int:request_id>/', RequestReceiptView, name='multi-request-receipt'),
+    path('multi-request-create/', request_document_view, name='multi-request-create'),
+    path('multi-request-receipt/<int:request_id>/', request_receipt_view, name='multi-request-receipt'),
     #Login
-    path('login/', LoginView, name='login'),
+    path('login/', login_view, name='login'),
+    path('refresh/', refresh_token_view, name='refresh'),
+    #Admin Dashboard
+    path('admin-dashboard/', admin_dashboard_view, name='admin-dashboard')
 ]

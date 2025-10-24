@@ -12,12 +12,27 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+import datetime, os
+
+JWT_SECRET_KEY = 'o)%!-$d1&=_2alnejvt7(ihd%o#c$xw2)4iop(6l=1%ys^zj=+' #MODIFY THIS IN PRODUCTION TO
+
+'''
+import os
+
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-secret-fallback')
+JWT_SECRET_KEY = SECRET_KEY
+'''
+
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_DELTA = datetime.timedelta(days=1)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0+f8jeoc_hkfn9&$t=h&d9ldo$*sn+q(92$4s2fi^_xovhf91g'
@@ -111,7 +126,15 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+'''
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'users.auth.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}'''
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

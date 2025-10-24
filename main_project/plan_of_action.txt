@@ -48,7 +48,6 @@ Pages in Website (Kiosk):
         - Displays request details (Documents Requested with Copy Count and Purpose)
         - Displays processing time
         - Has a button for printing receipt (Applicable only for Kiosk) and returning to menu which leads back to SERVICE MENU (2)
-6. PRIORITY LANE [--SUBJECT TO REMOVE--]
 
 Django Apps (Kiosk):
 1. Requests
