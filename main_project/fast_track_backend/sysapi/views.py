@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.conf import settings
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -13,12 +13,12 @@ from doccatalog.models import DocumentType
 from payments.models import Payment
 from .serializers import (CheckRequestNumberSerializer, CheckRequestByStudentSerializer,
                           RequestCreateSerializer, RequestReceiptSerializer,
-                          LoginSerializer, AdminDashboardSerializer)
+                          LoginSerializer, AdminDashboardSerializer, AdminRequestManagerSerializer)
 
 from datetime import datetime, timedelta, UTC
 import jwt
 
-# Create your views here.
+# Kiosk API Views
 @api_view(['POST'])
 def check_request_number_view(request):
     req_number = request.data.get('request_number')
@@ -56,13 +56,11 @@ def check_request_by_student_view(request):
     except User.DoesNotExist:
         return Response({'error': 'No matching student found.'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Fetch all document requests by this user (latest first)
     requests = Request.objects.filter(user_id=user.user_id).order_by('-created_at')
 
     if not requests.exists():
         return Response({'error': 'No document requests found.'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Serialize all requests for the frontend to display one at a time
     req_serializer = CheckRequestNumberSerializer(requests, many=True)
 
     return Response({
@@ -118,6 +116,7 @@ def request_receipt_view(request, request_id):
     serializer = RequestReceiptSerializer(req)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+#Admin API Views
 @api_view(['POST'])
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
@@ -182,7 +181,6 @@ def refresh_token_view(request):
     new_access_token = jwt.encode(new_access_payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
     return Response({'access_token': new_access_token}, status=status.HTTP_200_OK)
-
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -257,4 +255,32 @@ def admin_dashboard_view(request):
         "warnings": warnings,
     })
 
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_request_manager_view(request):
+    search_query = request.query_params.get('search', '').strip()
+    status_id = request.query_params.get('status_id')
+
+    queryset = (
+        Request.objects
+        .select_related('user_id', 'status_id')
+        .prefetch_related('requesteddocuments_set__doctype_id')
+        .order_by('-created_at')
+    )
+
+    if search_query:
+        queryset = queryset.filter(
+            Q(user_id__first_name__icontains=search_query) |
+            Q(user_id__last_name__icontains=search_query) |
+            Q(user_id__student_number__icontains=search_query) |
+            Q(request_id__icontains=search_query)
+        )
+
+    if status_id:
+        queryset = queryset.filter(status_id=status_id)
+
+    serializer = AdminRequestManagerSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)

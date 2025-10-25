@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (check_request_number_view, check_request_by_student_view, get_request_details_view,
                     request_receipt_view, request_document_view, login_view,
-                    refresh_token_view, admin_dashboard_view)
+                    refresh_token_view, admin_dashboard_view, admin_request_manager_view)
 
 urlpatterns = [
     #Check Status
@@ -18,5 +18,6 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('refresh/', refresh_token_view, name='refresh'),
     #Admin Dashboard
-    path('admin-dashboard/', admin_dashboard_view, name='admin-dashboard')
+    path('admin-dashboard/home/', admin_dashboard_view, name='admin-dashboard'),
+    path('admin-dashboard/request-management/', admin_request_manager_view, name='admin-request-management')
 ]

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from users.models import User, Role
 from requests.models import Request, RequestedDocuments, RequestPurpose, RequestStatus
 from doccatalog.models import DocumentType
+from payments.models import Payment
 from datetime import datetime
 
 class RequestedDocumentCheckSerializer(serializers.ModelSerializer):
@@ -61,7 +62,6 @@ class CheckRequestNumberSerializer(serializers.ModelSerializer):
         return obj.user_id.student_number or 'N/A'
 
     def get_request_number(self, obj):
-        from datetime import datetime
         current_year = datetime.now().year
         return f'FAST-{current_year}-{obj.request_id}'
 
@@ -318,3 +318,57 @@ class AdminDashboardSerializer(serializers.Serializer):
     document_distribution = serializers.ListField()
     latest_requests = serializers.ListField()
     warnings = serializers.ListField()
+
+class AdminRequestManagerSerializer(serializers.ModelSerializer):
+    request_number = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
+    requested_documents = serializers.SerializerMethodField()
+    date_submitted = serializers.DateTimeField()
+    status = serializers.CharField(source='status_id.name')
+
+    class Meta:
+        model = Request
+        fields = [
+            'request_id',
+            'request_number',
+            'full_name',
+            'user_id',
+            'status_id',
+            'date_submitted',
+            'requested_documents',
+        ]
+
+    def get_request_number(self, obj):
+        current_year = datetime.now().year
+        return f'FAST-{current_year}-{obj.request_id}'
+
+    def get_requester_name(self, obj):
+        u = obj.user_id
+        parts = [u.first_name, u.middle_name or '', u.last_name or '']
+        return " ".join(p for p in parts if p).strip()
+
+    def get_requested_documents(self, obj):
+        requested_docs = RequestedDocuments.objects.filter(request_id=obj)
+        serializer = RequestedDocumentCheckSerializer(requested_docs, many=True)
+        return serializer.data
+
+class AdminPaymentManagerSerializer(serializers.ModelSerializer):
+    revenue = serializers.SerializerMethodField()
+    pending_payments = serializers.SerializerMethodField()
+    paid_today = serializers.SerializerMethodField()
+    failed_payment = serializers.SerializerMethodField()
+    first_name = serializers.CharField(source='request_id.user_id.first_name',read_only=True)
+
+    class Meta:
+        model = Payment
+    pass
+'''
+3. PAYMENT TRACKING
+    - Displays statistics like revenue, pending payments, how many students paid today, and how many payments failed
+    - Has a search bar that the admin can use to find requests by payments (Can search by name, ID, or request number)
+    - Has a dropdown filter using payment status
+    - Has a button for exporting data (probably in .csv or .xlsx)
+    - Displays payments in cards, each containing payment number, request number, full name, payment method, date paid, transaction ID (?), total amount, payment status and the card has a button for changing the status of the payment (currently only has button to change the status to paid but should have button for other statuses as well). Each card also has a button for the detailed view leading to PAYMENT DETAIL VIEW (3A)
+      a. PAYMENT DETAIL VIEW
+        - Opens a window showing payment details like payment number, request number, full name, total amount, payment method, status
+'''

@@ -98,7 +98,7 @@ const AdminDashboardTest = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axiosInstance.get("/admin-dashboard/");
+      const response = await axiosInstance.get("/admin-dashboard/home/");
       setData(response.data);
     } catch (err) {
       console.error(err);
