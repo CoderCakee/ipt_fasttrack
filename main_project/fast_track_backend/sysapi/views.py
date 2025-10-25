@@ -284,3 +284,27 @@ def admin_request_manager_view(request):
 
     serializer = AdminRequestManagerSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_payment_manager_view(request):
+    pass
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_notification_manager_view(request):
+    pass
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_user_manager_view(request):
+    pass
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_log_manager_view(request):
+    pass

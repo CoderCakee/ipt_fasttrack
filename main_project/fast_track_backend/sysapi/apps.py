@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class KioskapiConfig(AppConfig):
+class SysapiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'kioskapi'
+    name = 'sysapi'
