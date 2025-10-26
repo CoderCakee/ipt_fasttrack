@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'payments',
     'notifications',
     'doccatalog',
-    'sysapi',
+    #'kioskapi',
+    #'adminapi',
     'logs',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -99,11 +100,14 @@ WSGI_APPLICATION = 'fast_track_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'fast_track_db',
-        'USER': 'root',
-        'PASSWORD': 'testing123SQL',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': 'fasttrack_db',
+        'USER': 'user123',
+        'PASSWORD': '12345',
+        'HOST': '127.0.0.1',
+        'PORT': '3307',
+	'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
 
