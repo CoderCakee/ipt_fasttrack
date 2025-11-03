@@ -145,7 +145,6 @@ class RequestCreateSerializer(serializers.ModelSerializer):
             'mobile_number': validated_data.pop('mobile_number', None),
         }
 
-        # --- Lookup logic ---
         user = None
         email = user_data.get('email_address')
         mobile = user_data.get('mobile_number')
@@ -164,11 +163,9 @@ class RequestCreateSerializer(serializers.ModelSerializer):
             if updated:
                 user.save()
         else:
-            # Create new user
             requester_role = Role.objects.get(pk=4)
             user = User.objects.create(**user_data, role_id=requester_role)
 
-        # --- Create the request ---
         request_status = RequestStatus.objects.get(description__iexact='requested')
         request_obj = Request.objects.create(
             user_id=user,
@@ -177,7 +174,6 @@ class RequestCreateSerializer(serializers.ModelSerializer):
             notes=validated_data.get('notes', '')
         )
 
-        # --- Create requested document ---
         for doc_data in requested_docs_data:
             RequestedDocuments.objects.create(
                 request_id=request_obj,
@@ -361,7 +357,7 @@ class AdminPaymentManagerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-    pass
+
 '''
 3. PAYMENT TRACKING
     - Displays statistics like revenue, pending payments, how many students paid today, and how many payments failed
@@ -372,3 +368,9 @@ class AdminPaymentManagerSerializer(serializers.ModelSerializer):
       a. PAYMENT DETAIL VIEW
         - Opens a window showing payment details like payment number, request number, full name, total amount, payment method, status
 '''
+
+class AdminNotifManagerSerializer(serializers.ModelSerializer):
+    pass
+
+class AdminUserManagerSerializer(serializers.ModelSerializer):
+    pass

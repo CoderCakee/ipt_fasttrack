@@ -124,14 +124,41 @@ Pages in Website (Admin):
         - Should have an add template feature
 
 5. USER MANAGEMENT
-    - Has a button for managing roles leading to ?
-    - Has a button for adding a user
-    - Displays system users in cards with information like full name, role, status, email address, what department they belong in, last login time, when the user was created, and each card has a button for deactivating the user, resetting the password, editing the user, and deleted the user
+    - Has a button for managing roles leading to MANAGE ROLES (5A)
+    - Has a button for adding a user leading to ADD USER (5B)
+    - Displays system users in cards with information like full name, role, status, email address, what department they belong in, last login time, when the user was created, and each card has a button for deactivating the user, resetting the password, editing the user which leads to EDIT USER (5C), and deleting the user which leads to DELETE USER (5D)
+      a. MANAGE ROLES
+        - Has cards that show the roles and the permissions that each role is attached to
+      b. ADD USER
+        - Has a field for full name (Should probably be separated into first name, middle name, last name)
+        - Has a field for email
+        - Has a dropdown for role
+        - Has a field for department
+        - Has a field for temporary password
+        - Has a button for adding user
+      c. EDIT USER
+        - Has a field for full name (Should probably be separated into first name, middle name, last name)
+        - Has a field for email
+        - Has a dropdown for role
+        - Has a field for department
+        - Has a dropdown for status
+        - Has a button for saving changes
+      d. DELETE USER
+        - Has a button for deleting the user
+        - Has a button for cancelling action
 
 6. REPORTS AND LOGS
     - Has three buttons that switch between REPORTS (6A), ANALYTICS (6B), and SYSTEM LOGS (6C)
       a. REPORTS
-        - Has a
+        - Has a dropdown for report type
+        - Has a dropdown for date range
+        - Has a dropdown for format
+        - Has a button for generating report
+        - Has buttons(?) for daily summary of today's activity, past 7 days, performance metrics, and user activity
+      b. ANALYTICS
+        -
+      c. SYSTEM LOGS
+        - Has cards detailing activity in the system which includes information like the action, which user performed the action, and the IP address(?)
 
 Django Apps (Admin):
 
@@ -268,6 +295,7 @@ Considerations for the System:
 - Asides from hosting costs, the university will also need to have people on standby for maintenance which means we'll have to create a cohesive guide both for the admin users and other developers that will be in charge of system maintenance. With this in mind, the system can remain future-proof even when, we, the original developers aren't around anymore.
 - Make sure to soft-delete any information and archive it in the database, not hard-delete.
 - Some security issues (check Django security documentation)
+- Log files for auditing will be stored locally and not in the database
 - NOTE: For document types, price and expected processing time currently have placeholder values (100.0 and 3-5 working days)
 
 Questions for Development:
@@ -275,3 +303,8 @@ Questions for Development:
 - Are there ever any special cases where the document request purpose might require an "others" field?
 - Does this list cover all the documents that can be requested from the University Registrar? (Listed documents include: Transcript of Records, Transfer Credentials, Certification of Enrollment, GWA, Medium of Instruction, Grades)
 - What is the price and expected processing time of each document type?
+
+Problems Identified (Frontend):
+- Multi-Document Request Receipt only shows one of the multiple documents requested
+- Multi-Document Request doesn't save to the database
+- After creation of requests, the shown request number is hardcoded

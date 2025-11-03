@@ -302,9 +302,3 @@ def admin_notification_manager_view(request):
 @permission_classes([IsAuthenticated])
 def admin_user_manager_view(request):
     pass
-
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def admin_log_manager_view(request):
-    pass

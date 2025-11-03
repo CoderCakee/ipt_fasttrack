@@ -72,19 +72,22 @@ export default function RequestDocument() {
     setLoading(true);
 
     try {
-      // Payload matches Django backend expectation
-      const payload = {
-        first_name: formData.firstName,
-        middle_name: formData.middleName,
-        last_name: formData.lastName,
-        student_number: formData.studentId,
-        email_address: formData.email,
-        mobile_number: formData.phone,
-        doctype_id: formData.documentType,
-        purpose_id: formData.purpose,
-        copy_amount: formData.copies,
-        notes: formData.notes,
-      };
+        const payload = {
+          first_name: formData.firstName,
+          middle_name: formData.middleName,
+          last_name: formData.lastName,
+          student_number: formData.studentId,
+          email_address: formData.email,
+          mobile_number: formData.phone,
+          purpose_id: formData.purpose,
+          requested_documents: [
+            {
+              doctype_id: formData.documentType,
+              copy_amount: formData.copies,
+            },
+          ],
+          notes: formData.notes,
+        };
 
       const response = await axios.post(`${API_BASE}/request-create/`, payload);
       console.log("Request submitted successfully:", response.data);
