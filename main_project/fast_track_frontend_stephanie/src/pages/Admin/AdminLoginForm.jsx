@@ -12,7 +12,7 @@ const AdminLoginForm = () => {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    navigate("/AdminLoginForm"); 
+    navigate("/AdminDashboard"); 
   };
 
   const handleForgotPassword = () => {
