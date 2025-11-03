@@ -91,7 +91,7 @@ const AdminDashboard = () => {
     },
     { label: "Request Management", route: "/RequestManagement", icon: null },
     { label: "Payment Tracking", route: "/PaymentTracking", icon: null },
-    { label: "Notifications", route: "/Notifications", icon: null },
+    { label: "Notifications", route: "/NotificationManagement", icon: null },
     { label: "User Management", route: "/UserManagement", icon: null },
     { label: "Reports & Logs", route: "/Reports", icon: null },
   ];
