@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import AdminLayout from "../../components/AdminLayout";
+import SearchIcon from "../../assets/search.png";
 
 // StatusTag component for colored status badges
 const StatusTag = ({ status }) => {
@@ -21,6 +22,7 @@ const StatusTag = ({ status }) => {
   );
 };
 
+// Individual request card component
 const RequestCard = ({
   requestNumber,
   requesterName,
@@ -102,23 +104,17 @@ const RequestManagement = () => {
     },
   ];
 
-  // Handler for search input change
+  // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
-
-  // Handler for status filter change
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
-
-  // Placeholder for clicking view button
   const handleViewClick = (requestNumber) => {
     alert(`View details for ${requestNumber} - Feature coming soon!`);
   };
 
   // Filter requests based on search and status
   const filteredRequests = requests.filter((req) => {
-    // Filter by status
     const statusMatch =
       statusFilter === "All Statuses" || req.status === statusFilter;
-    // Filter by search term in requestNumber or requesterName (case insensitive)
     const searchLower = searchTerm.toLowerCase();
     const searchMatch =
       req.requestNumber.toLowerCase().includes(searchLower) ||
@@ -143,38 +139,31 @@ const RequestManagement = () => {
         onSubmit={(e) => e.preventDefault()}
         className="flex flex-col md:flex-row items-center gap-4 mb-6"
       >
-        <input
-          type="text"
-          placeholder="Search by name, ID, or request number..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full md:flex-1 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          aria-label="Search Requests"
-        />
-        <button
-          type="submit"
-          className="bg-blue-800 text-white px-5 py-2 rounded-md hover:bg-blue-900 transition"
-          aria-label="Search button"
-          onClick={() => {
-            /* Currently search updates as you type, this button triggers no action */
-          }}
-        >
-          {/* Search icon */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-5 h-5 inline"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </button>
+        {/* Search bar */}
+        <div className="relative flex-grow w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search by name, ID, or request number..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full border border-gray-300 rounded-md pl-4 pr-20 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            aria-label="Search payments"
+          />
 
+          <button
+            type="submit"
+            className="absolute right-0 top-0 h-full px-6 bg-blue-800 text-white rounded-r-md hover:bg-blue-900 transition flex items-center justify-center"
+            aria-label="Search button"
+          >
+            <img
+              src={SearchIcon}
+              alt="Search"
+              className="w-5 h-5 object-contain filter invert brightness-0"
+            />
+          </button>
+        </div>
+
+        {/* Status filter */}
         <select
           value={statusFilter}
           onChange={handleStatusChange}

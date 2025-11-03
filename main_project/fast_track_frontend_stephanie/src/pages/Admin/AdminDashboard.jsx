@@ -134,10 +134,15 @@ const AdminDashboard = () => {
 
         {/* MAIN CONTENT */}
         <main className="flex-1 bg-white p-8 overflow-y-auto min-h-0">
-          <h1 className="text-blue-900 font-bold text-xl mb-1">Dashboard Overview</h1>
-          <p className="text-gray-600 text-sm mb-6">
-            Real-time summary of FAST Track system activity
-          </p>
+        {/* Page title and description */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-blue-900 mb-1">
+          Dashboard Overview
+        </h1>
+        <p className="text-gray-700 text-sm">
+          Real-time summary of FAST Track system activity
+        </p>
+      </div>
 
           {/* Stats cards */}
           <section className="flex flex-wrap gap-5 mb-8">
