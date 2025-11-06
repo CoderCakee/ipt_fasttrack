@@ -17,6 +17,7 @@ import MultiDocumentReceipt from '../pages/Kiosk/MultiDocumentReceipt';
 import AdminLoginForm from '../pages/Admin/AdminLoginForm'; 
 import AdminDashboard from '../pages/Admin/AdminDashboard'; 
 import RequestManagement from '../pages/Admin/RequestManagement'; 
+//import ViewRequestDetails from '../pages/Admin/ViewRequestDetails'; 
 import PaymentTracking from '../pages/Admin/PaymentTracking'; 
 import NotificationManagement from '../pages/Admin/NotificationManagement'; 
 // import UserManagement from '../pages/Admin/UserManagement'; 
@@ -56,6 +57,8 @@ function AppRoutes() {
 
 
         {/*
+        <Route path="/ViewRequestDetails" element={<ViewRequestDetails />} />
+
         <Route path="/UserManagement" element={<UserManagement />} />
         <Route path="/Reports" element={<Reports />} />
         */}
