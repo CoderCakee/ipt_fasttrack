@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FastTrackLogo from "../../assets/logo.png";
 import background from "../../assets/background.webp";
+import UserIcon from "../../assets/user.png";
+import LockIcon from "../../assets/password.png";
 
 const AdminLoginForm = () => {
   const navigate = useNavigate();
@@ -10,14 +12,61 @@ const AdminLoginForm = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleLoginSubmit = (e) => {
+  // Add message state for reset success
+  const [resetMessage, setResetMessage] = useState("");
+
+  const handleForgotSubmit = (e) => {
     e.preventDefault();
-    navigate("/AdminDashboard"); 
+    if (!forgotEmail) {
+      setForgotError("Email is required.");
+      return;
+    }
+    if (!isValidEmail(forgotEmail)) {
+      setForgotError("Please enter a valid email address.");
+      return;
+    }
+    setForgotError("");
+    setResetMessage(`A password reset link has been sent to ${forgotEmail}`);
+    setForgotOpen(false); // close modal
+    // Auto clear message after 4 seconds
+    setTimeout(() => setResetMessage(""), 4000);
   };
 
-  const handleForgotPassword = () => {
-    alert("Forgot Password feature coming soon!");
+  // Forgot Password modal state & form
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
+
+  const modalRef = useRef(null);
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    navigate("/AdminDashboard");
   };
+
+  // Email validation regex
+  const isValidEmail = (email) => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  const handleForgotPasswordClick = () => {
+    setForgotEmail("");
+    setForgotError("");
+    setForgotOpen(true);
+  };
+
+  // Close modal when clicking outside it
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (forgotOpen && modalRef.current && !modalRef.current.contains(event.target)) {
+        setForgotOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [forgotOpen]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -39,7 +88,7 @@ const AdminLoginForm = () => {
       </div>
 
       {/* Right side: Larger login form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-white px-12 md:px-32 py-24">
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-white px-12 md:px-32 py-24 relative">
         {/* Logo */}
         <img src={FastTrackLogo} alt="FastTrack Logo" className="w-48 mb-12" />
 
@@ -53,22 +102,10 @@ const AdminLoginForm = () => {
             <label htmlFor="username" className="block text-base font-medium text-gray-900 mb-2">
               Username/Email
             </label>
+
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5.121 17.804A13.937 13.937 0 0112 15c3.314 0 6.313 1.032 8.879 2.79M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <img src={UserIcon} alt="User Icon" className="w-6 h-6 opacity-70" />
               </div>
               <input
                 type="text"
@@ -88,21 +125,8 @@ const AdminLoginForm = () => {
               Password
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 11c1.656 0 3-1.567 3-3.5S13.656 4 12 4 9 5.567 9 7.5 10.344 11 12 11zM12 11v8m-6 0a6 6 0 0112 0v0a6 6 0 01-12 0v0z"
-                  />
-                </svg>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <img src={LockIcon} alt="Password Icon" className="w-6 h-6 opacity-70" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
@@ -143,7 +167,11 @@ const AdminLoginForm = () => {
                     stroke="currentColor"
                     strokeWidth={2}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -157,7 +185,7 @@ const AdminLoginForm = () => {
 
           {/* Forgot password */}
           <p
-            onClick={handleForgotPassword}
+            onClick={() => setForgotOpen(true)}
             className="text-sm text-[#00308F] cursor-pointer hover:underline select-none text-right"
           >
             Forgot Password?
@@ -177,6 +205,108 @@ const AdminLoginForm = () => {
           For technical support, contact IT Services <br />
           Email: itservices@auf.edu.ph
         </p>
+
+        {/* Success Message Banner */}
+{resetMessage && (
+  <div className="fixed top-0 left-0 right-0 z-50 flex justify-center animate-slideDown">
+    <div className="bg-green-600 text-white text-sm sm:text-base font-medium px-6 py-4 rounded-b-2xl shadow-lg flex items-center space-x-3 max-w-lg w-full mx-4 sm:mx-0">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 flex-shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      <span>{resetMessage}</span>
+      <button
+        onClick={() => setResetMessage("")}
+        className="ml-auto text-white hover:text-gray-200 focus:outline-none"
+        aria-label="Close notification"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+)}
+
+
+        {/* Forgot Password Modal */}
+        {forgotOpen && (
+          <>
+            {/* Overlay */}
+            <div
+              onClick={() => setForgotOpen(false)}
+              className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"
+            />
+
+            {/* Modal Container */}
+            <div className="fixed inset-0 flex items-center justify-center z-50 px-4 sm:px-0">
+              <div
+                ref={modalRef}
+                className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-lg relative"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="forgotPasswordTitle"
+              >
+                <h3
+                  id="forgotPasswordTitle"
+                  className="text-xl font-bold text-gray-900 mb-6"
+                >
+                  Forgot Password
+                </h3>
+
+                <form onSubmit={handleForgotSubmit} className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="forgotEmail"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Enter your email address
+                    </label>
+                    <input
+                      type="email"
+                      id="forgotEmail"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      className={`w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                        forgotError ? "border-red-500" : "border-gray-300"
+                      }`}
+                      placeholder="email@auf.edu.ph"
+                      aria-invalid={forgotError ? "true" : "false"}
+                      aria-describedby={forgotError ? "email-error" : undefined}
+                    />
+                    {forgotError && (
+                      <p id="email-error" className="mt-1 text-red-600 text-sm">
+                        {forgotError}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex justify-end gap-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setForgotOpen(false)}
+                      className="border border-gray-300 px-5 py-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-all font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="bg-[#B9970E] text-white px-5 py-2 rounded-xl hover:bg-yellow-600 transition-all font-semibold"
+                    >
+                      Send Reset Link
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

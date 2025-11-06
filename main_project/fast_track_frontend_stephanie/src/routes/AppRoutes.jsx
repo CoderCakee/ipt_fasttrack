@@ -20,9 +20,7 @@ import RequestManagement from '../pages/Admin/RequestManagement';
 import PaymentTracking from '../pages/Admin/PaymentTracking'; 
 import NotificationManagement from '../pages/Admin/NotificationManagement'; 
 import UserManagement from '../pages/Admin/UserManagement'; 
-
-
-// import Reports from '../pages/Admin/Reports'; 
+import Reports from '../pages/Admin/Reports'; 
 
 
 
@@ -55,14 +53,8 @@ function AppRoutes() {
         <Route path="/PaymentTracking" element={<PaymentTracking />} />
         <Route path="/NotificationManagement" element={<NotificationManagement />} />
         <Route path="/UserManagement" element={<UserManagement />} />
-
-
-
-
-        {/*
-
         <Route path="/Reports" element={<Reports />} />
-        */}
+    
 
       
       </Routes>

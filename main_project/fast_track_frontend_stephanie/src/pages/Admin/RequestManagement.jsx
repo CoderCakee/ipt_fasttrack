@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import ViewRequestDetails from "../../components/ViewRequestDetails";
 import SearchIcon from "../../assets/search.png";
@@ -22,8 +23,8 @@ const StatusTag = ({ status }) => {
   );
 };
 
-// Individual request card
-const RequestCard = ({ requestNumber, requesterName, documents, status, onView }) => (
+// Individual request card with Notify button
+const RequestCard = ({ requestNumber, requesterName, documents, status, onView, onNotify }) => (
   <div className="border border-gray-300 rounded-md p-4 mb-4 flex justify-between items-start">
     <div>
       <p className="text-blue-700 font-semibold mb-1">{requestNumber}</p>
@@ -61,16 +62,25 @@ const RequestCard = ({ requestNumber, requesterName, documents, status, onView }
         </svg>
         View
       </button>
+      <button
+        onClick={onNotify}
+        className="border border-blue-600 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition"
+        aria-label={`Notify for ${requestNumber}`}
+      >
+        Notify
+      </button>
     </div>
   </div>
 );
 
 const RequestManagement = () => {
+  const navigate = useNavigate();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  // Temporary static data
+  // Static data for demo; replace with API in the future
   const requests = [
     {
       id: 1,
@@ -101,17 +111,27 @@ const RequestManagement = () => {
     },
   ];
 
-  // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
 
   const handleViewClick = (req) => {
-    setSelectedRequest(req); // open modal with this request
+    setSelectedRequest(req);
   };
 
   const closeModal = () => setSelectedRequest(null);
 
-  // Filtering logic
+  // New: handle notification button click
+  const handleNotify = (req) => {
+    navigate("/NotificationManagement", {
+      state: {
+        recipient: req.email || "",
+        requestNumber: req.requestNumber || "",
+        notificationType: "Email", // default notification type or logic to determine
+      },
+    });
+  };
+
+  // Filter
   const filteredRequests = requests.filter((req) => {
     const statusMatch =
       statusFilter === "All Statuses" || req.status === statusFilter;
@@ -135,7 +155,6 @@ const RequestManagement = () => {
         onSubmit={(e) => e.preventDefault()}
         className="flex flex-col md:flex-row items-center gap-4 mb-6"
       >
-        {/* Search bar */}
         <div className="relative flex-grow w-full md:w-auto">
           <input
             type="text"
@@ -157,7 +176,6 @@ const RequestManagement = () => {
           </button>
         </div>
 
-        {/* Status filter */}
         <select
           value={statusFilter}
           onChange={handleStatusChange}
@@ -170,7 +188,7 @@ const RequestManagement = () => {
         </select>
       </form>
 
-      {/* Request List */}
+      {/* Requests List */}
       <section className="border border-gray-300 rounded-md p-6 space-y-4">
         {filteredRequests.length === 0 ? (
           <p className="text-gray-600 italic">No matching requests found.</p>
@@ -180,11 +198,10 @@ const RequestManagement = () => {
               key={req.id}
               requestNumber={req.requestNumber}
               requesterName={req.requesterName}
-              documents={req.requested_documents
-                .map((d) => d.name)
-                .join(", ")}
+              documents={req.requested_documents.map((d) => d.name).join(", ")}
               status={req.status}
               onView={() => handleViewClick(req)}
+              onNotify={() => handleNotify(req)}
             />
           ))
         )}
@@ -197,7 +214,7 @@ const RequestManagement = () => {
             request={selectedRequest}
             onMarkProcessing={(id) => console.log("Mark Processing:", id)}
             onMarkReleased={(id) => console.log("Mark Released:", id)}
-            onClose={closeModal} 
+            onClose={closeModal}
           />
           <button
             onClick={closeModal}

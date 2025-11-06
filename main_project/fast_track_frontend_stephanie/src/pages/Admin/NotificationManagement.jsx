@@ -1,43 +1,26 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 
 const NotificationManagement = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
+  const prefill = location.state || {};
 
-  // State to manage active tab
+  // Tabs
   const [activeTab, setActiveTab] = useState("send");
 
-  // Form input states
-  const [notificationType, setNotificationType] = useState("Email");
-  const [recipient, setRecipient] = useState("");
-  const [requestNumber, setRequestNumber] = useState("");
+  // Form states - prefilled from navigation state if any
+  const [notificationType, setNotificationType] = useState(
+    prefill.notificationType || "Email"
+  );
+  const [recipient, setRecipient] = useState(prefill.recipient || "");
+  const [requestNumber, setRequestNumber] = useState(prefill.requestNumber || "");
   const [template, setTemplate] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sendImmediately, setSendImmediately] = useState(false);
 
-  // Placeholder notifications
-  const [notifications] = useState([
-    {
-      subject: "Test Email",
-      recipient: "user@example.com",
-      requestNumber: "FAST-2024-001234",
-      sentDate: "2025-11-03",
-      message: "This is a test email message.",
-      status: "Sent",
-    },
-    {
-      subject: "Test SMS",
-      recipient: "09123456789",
-      requestNumber: "",
-      sentDate: "2025-11-02",
-      message: "This is a test SMS message.",
-      status: "Sent",
-    },
-  ]);
-
-  // Notification templates
+  // Notification templates data
   const templates = [
     {
       id: 1,
@@ -71,22 +54,55 @@ FAST Track Team`,
     },
   ];
 
-  // Handler for sending notification
+  // Placeholder notifications history
+  const [notifications] = useState([
+    {
+      subject: "Test Email",
+      recipient: "user@example.com",
+      requestNumber: "FAST-2024-001234",
+      sentDate: "2025-11-03",
+      message: "This is a test email message.",
+      status: "Sent",
+    },
+    {
+      subject: "Test SMS",
+      recipient: "09123456789",
+      requestNumber: "",
+      sentDate: "2025-11-02",
+      message: "This is a test SMS message.",
+      status: "Sent",
+    },
+  ]);
+
+  // Update subject and message when template changes
+  useEffect(() => {
+    if (!template) {
+      setSubject("");
+      setMessage("");
+      return;
+    }
+    const selectedTemplate = templates.find((t) => t.title === template);
+    if (selectedTemplate) {
+      // Replace placeholder with actual request number if any
+      const content = selectedTemplate.content.replace(
+        /#{requestNumber}/g,
+        requestNumber || "N/A"
+      );
+      setSubject(selectedTemplate.title);
+      setMessage(content);
+    }
+  }, [template, requestNumber]);
+
+  // Handlers
   const handleSendNotification = (e) => {
     e.preventDefault();
     alert(
-      `Notification Sent!\n` +
-        `Type: ${notificationType}\n` +
-        `Recipient: ${recipient}\n` +
-        `Request Number: ${requestNumber}\n` +
-        `Template: ${template}\n` +
-        `Subject: ${subject}\n` +
-        `Message: ${message}\n` +
-        `Send Immediately: ${sendImmediately}`
+      `Notification Sent!\nType: ${notificationType}\nRecipient: ${recipient}\nRequest Number: ${requestNumber}\nSubject: ${subject}\nMessage:\n${message}\nSend Immediately: ${sendImmediately}`
     );
+    // TODO: Implement real API call here
   };
 
-  // Icon Component
+  // Simple mail icon
   const MailIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +121,7 @@ FAST Track Team`,
     </svg>
   );
 
-  // Notification Item Component
+  // Notification history item card
   const NotificationItem = ({
     subject,
     recipient,
@@ -133,14 +149,14 @@ FAST Track Team`,
           <p>{sentDate}</p>
         </div>
       </div>
-      <p className="text-gray-700 mb-2">{message}</p>
+      <p className="text-gray-700 mb-2 whitespace-pre-wrap">{message}</p>
       <p className="text-xs font-semibold text-green-700">{status}</p>
     </div>
   );
 
   return (
     <AdminLayout>
-      <div className="p-6 bg-white rounded-md shadow-sm">
+      <div className="p-6 bg-white rounded-md shadow-sm max-w-5xl mx-auto">
         {/* Page Title */}
         <h1 className="text-blue-900 font-bold text-2xl mb-1">
           Notification Management
@@ -244,27 +260,13 @@ FAST Track Team`,
                   Use Template
                 </label>
                 <select
-                  value={template ? templates.find(t => t.title === template)?.id : ""}
-                  onChange={(e) => {
-                    const selectedId = parseInt(e.target.value);
-                    if (!selectedId) {
-                      setTemplate("");
-                      setSubject("");
-                      setMessage("");
-                      return;
-                    }
-                    const selectedTemplate = templates.find((t) => t.id === selectedId);
-                    if (selectedTemplate) {
-                      setTemplate(selectedTemplate.title);
-                      setSubject(selectedTemplate.title);
-                      setMessage(selectedTemplate.content);
-                    }
-                  }}
+                  value={template}
+                  onChange={(e) => setTemplate(e.target.value)}
                   className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-900"
                 >
                   <option value="">No Template</option>
                   {templates.map((t) => (
-                    <option key={t.id} value={t.id}>
+                    <option key={t.id} value={t.title}>
                       {t.title}
                     </option>
                   ))}
@@ -327,6 +329,7 @@ FAST Track Team`,
           </form>
         )}
 
+        {/* Notification History Tab */}
         {activeTab === "history" && (
           <div className="text-gray-600">
             {notifications.map((item, index) => (
@@ -335,6 +338,7 @@ FAST Track Team`,
           </div>
         )}
 
+        {/* Templates Tab */}
         {activeTab === "templates" && (
           <section
             id="templates-panel"

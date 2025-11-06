@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import SearchIcon from "../../assets/search.png";
 
-// ✅ Status badge component
+// Status badge component
 const StatusBadge = ({ status }) => {
   const colors = {
     Paid: "bg-green-100 text-green-700",
@@ -23,7 +23,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ✅ Single payment record row
+// Single payment record row
 const PaymentRecordRow = ({
   paymentId,
   requestNumber,
@@ -122,16 +122,7 @@ const PaymentTracking = () => {
     },
   ];
 
-  // Handlers
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleStatusChange = (e) => setStatusFilter(e.target.value);
-  const handleExportClick = () => alert("Export feature coming soon!");
-  const handleMarkAsPaid = (paymentId) =>
-    alert(`Marking payment ${paymentId} as Paid - feature coming soon!`);
-  const handleViewDetails = (paymentId) =>
-    alert(`Viewing details for payment ${paymentId} - feature coming soon!`);
-
-  // Filtered list
+  // Filter logic
   const filteredPayments = paymentRecords.filter((record) => {
     const matchesSearch =
       searchTerm === "" ||
@@ -144,6 +135,63 @@ const PaymentTracking = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Convert data to CSV
+  const convertToCSV = (data) => {
+    const headers = [
+      "Payment ID",
+      "Request Number",
+      "Requester Name",
+      "Payment Method",
+      "Amount",
+      "Status",
+    ];
+
+    const csvRows = [];
+    csvRows.push(headers.join(","));
+    data.forEach((row) => {
+      const values = [
+        row.paymentId,
+        row.requestNumber,
+        row.requesterName,
+        row.paymentMethod,
+        row.amount,
+        row.status,
+      ];
+      // Escape commas and quotes
+      const escapedValues = values.map((v) =>
+        `"${String(v).replace(/"/g, '""')}"`
+      );
+      csvRows.push(escapedValues.join(","));
+    });
+    return csvRows.join("\n");
+  };
+
+  // ✅ Export Handler
+  const handleExportClick = () => {
+    if (filteredPayments.length === 0) {
+      alert("No data to export.");
+      return;
+    }
+    const csv = convertToCSV(filteredPayments);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `payment_records_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Other Handlers
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  const handleStatusChange = (e) => setStatusFilter(e.target.value);
+  const handleMarkAsPaid = (paymentId) =>
+    alert(`Marking payment ${paymentId} as Paid - feature coming soon!`);
+  const handleViewDetails = (paymentId) =>
+    alert(`Viewing details for payment ${paymentId} - feature coming soon!`);
 
   return (
     <AdminLayout>
@@ -199,7 +247,7 @@ const PaymentTracking = () => {
           <option>Failed</option>
         </select>
 
-        {/* Export button */}
+        {/* ✅ Export button */}
         <button
           type="button"
           onClick={handleExportClick}
