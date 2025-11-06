@@ -17,10 +17,11 @@ import MultiDocumentReceipt from '../pages/Kiosk/MultiDocumentReceipt';
 import AdminLoginForm from '../pages/Admin/AdminLoginForm'; 
 import AdminDashboard from '../pages/Admin/AdminDashboard'; 
 import RequestManagement from '../pages/Admin/RequestManagement'; 
-//import ViewRequestDetails from '../pages/Admin/ViewRequestDetails'; 
 import PaymentTracking from '../pages/Admin/PaymentTracking'; 
 import NotificationManagement from '../pages/Admin/NotificationManagement'; 
-// import UserManagement from '../pages/Admin/UserManagement'; 
+import UserManagement from '../pages/Admin/UserManagement'; 
+
+
 // import Reports from '../pages/Admin/Reports'; 
 
 
@@ -53,13 +54,13 @@ function AppRoutes() {
         <Route path="/RequestManagement" element={<RequestManagement />} />
         <Route path="/PaymentTracking" element={<PaymentTracking />} />
         <Route path="/NotificationManagement" element={<NotificationManagement />} />
+        <Route path="/UserManagement" element={<UserManagement />} />
+
 
 
 
         {/*
-        <Route path="/ViewRequestDetails" element={<ViewRequestDetails />} />
 
-        <Route path="/UserManagement" element={<UserManagement />} />
         <Route path="/Reports" element={<Reports />} />
         */}
 
