@@ -30,6 +30,8 @@ import Reports from '../pages/Admin/Reports';
 
 // WITHACCOUNT
 import LoginForm from '../pages/WithAccount/LoginForm'; 
+import Home from '../pages/WithAccount/Home'; 
+
 
 
 
@@ -69,6 +71,8 @@ function AppRoutes() {
 
 
         <Route path="/LoginForm" element={<LoginForm />} />
+        <Route path="/Home" element={<Home />} />
+
 
 
 
