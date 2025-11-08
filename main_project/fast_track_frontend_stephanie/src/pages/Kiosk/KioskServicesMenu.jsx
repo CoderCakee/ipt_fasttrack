@@ -5,7 +5,6 @@ import requestDocumentIcon from "../../assets/requestdocument.png";
 import multipleDocumentIcon from "../../assets/multiplerequest.png";
 import RegistrarInfoIcon from "../../assets/info.png";
 
-
 const services = [
   {
     title: "SCAN QR TO CHECK STATUS",
@@ -16,11 +15,6 @@ const services = [
     title: "REQUEST DOCUMENT",
     description: "Quick service for single document requests",
     icon: <img src={requestDocumentIcon} alt="Request Document Icon" className="h-12 w-12" />,
-  },
-  {
-    title: "MULTIPLE DOCUMENT REQUEST",
-    description: "Request multiple documents in one transaction",
-    icon: <img src={multipleDocumentIcon} alt="Multiple Document Icon" className="h-12 w-12" />,
   },
   {
     title: "REGISTRAR INFO & HELP",
@@ -57,56 +51,63 @@ const KioskServicesMenu = () => {
       </div>
 
       {/* Right Panel */}
-<div className="flex-1 bg-white p-8 flex flex-col items-center justify-start">
-  {/* Shared width wrapper for banner + buttons */}
-  <div className="w-full max-w-6xl">
-    {/* Banner */}
-    <div className="bg-yellow-700 rounded-r-full px-6 py-5 select-none inline-block">
-      <span className="uppercase font-semibold text-white text-lg tracking-widest whitespace-nowrap">
-        Choose a service to continue
-      </span>
-    </div>
+      <div className="flex-1 bg-white p-8 flex flex-col items-center justify-start">
+        {/* Shared width wrapper for banner + buttons */}
+        <div className="w-full max-w-6xl">
+          {/* Banner */}
+          <div className="bg-yellow-700 rounded-r-full px-6 py-5 select-none inline-block">
+            <span className="uppercase font-semibold text-white text-lg tracking-widest whitespace-nowrap">
+              Choose a service to continue
+            </span>
+          </div>
 
-    {/* Services Grid */}
-<div className="mt-6 space-y-6">
- {services.map(({ title, description, icon }, idx) => (
-  <button
-    key={idx}
-    onClick={() => {
-      if (title === "REQUEST DOCUMENT") navigate("/RequestDocumentStep1");
-      else if (title === "SCAN QR TO CHECK STATUS") navigate("/CheckRequestStatus");
-      else if (title === "REGISTRAR INFO & HELP") navigate("/RegistrarInfo");
-    }}
-    className="
-      flex items-center gap-6 w-full rounded-xl px-8 py-6 cursor-pointer
-      bg-gray-50 
-      hover:bg-blue-50 hover:border hover:border-blue-800
-      transition-all 
-      shadow-sm hover:shadow-md
-    "
-    type="button"
-  >
-    <div className="bg-blue-800 p-4 rounded-md flex justify-center items-center shrink-0">
-      {React.cloneElement(icon, { className: "h-14 w-14" })}
-    </div>
-    <div className="text-left">
-      <h2 className="text-blue-800 font-bold uppercase text-lg">{title}</h2>
-      <p className="text-gray-600 text-sm mt-1">{description}</p>
-    </div>
-  </button>
-))}
+          {/* Services Grid */}
+          <div className="mt-6 space-y-6">
+            {services.map(({ title, description, icon }, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  if (title === "REQUEST DOCUMENT") navigate("/RequestDocumentStep1");
+                  else if (title === "SCAN QR TO CHECK STATUS") navigate("/CheckRequestStatus");
+                  else if (title === "REGISTRAR INFO & HELP") navigate("/RegistrarInfo");
+                }}
+                className="
+                  flex items-center gap-6 w-full rounded-xl px-8 py-6 cursor-pointer
+                  bg-gray-50 
+                  hover:bg-blue-50 hover:border hover:border-blue-800
+                  transition-all 
+                  shadow-sm hover:shadow-md
+                "
+                type="button"
+              >
+                <div className="bg-blue-800 p-4 rounded-md flex justify-center items-center shrink-0">
+                  {React.cloneElement(icon, { className: "h-14 w-14" })}
+                </div>
+                <div className="text-left">
+                  <h2 className="text-blue-800 font-bold uppercase text-lg">{title}</h2>
+                  <p className="text-gray-600 text-sm mt-1">{description}</p>
+                </div>
+              </button>
+            ))}
 
-</div>
-
-
-  </div>
-</div>
-
-        
+            {/* Login with AUF Account button */}
+            <button
+              onClick={() => navigate("/LoginForm")}
+              className="
+                flex items-center justify-center w-full rounded-xl px-8 py-6 cursor-pointer
+                bg-blue-900 text-white font-bold uppercase text-lg tracking-widest 
+                hover:bg-blue-800 transition-shadow shadow-md hover:shadow-lg mt-6
+              "
+              type="button"
+              aria-label="Login with AUF Account"
+            >
+              Login with AUF Account
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
   );
 };
 
 export default KioskServicesMenu;
-
-
