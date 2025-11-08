@@ -156,7 +156,7 @@ FAST Track Team`,
 
   return (
     <AdminLayout>
-      <div className="p-6 bg-white rounded-md shadow-sm max-w-5xl mx-auto">
+      <div className="p-6 bg-white rounded-md shadow-sm">
         {/* Page Title */}
         <h1 className="text-blue-900 font-bold text-2xl mb-1">
           Notification Management

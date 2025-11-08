@@ -31,8 +31,8 @@ const PaymentRecordRow = ({
   paymentMethod,
   amount,
   status,
-  showMarkAsPaid,
   onMarkAsPaid,
+  onMarkAsUnpaid,
   onViewDetails,
 }) => {
   return (
@@ -52,13 +52,22 @@ const PaymentRecordRow = ({
 
       {/* Right side */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-5">
-        {showMarkAsPaid && (
+        {status !== "Paid" && (
           <button
-            onClick={onMarkAsPaid}
+            onClick={() => onMarkAsPaid(paymentId)}
             className="bg-green-600 text-white px-4 py-1 rounded-md hover:bg-green-700 transition"
             aria-label={`Mark payment ${paymentId} as paid`}
           >
             Mark as Paid
+          </button>
+        )}
+        {status === "Paid" && (
+          <button
+            onClick={() => onMarkAsUnpaid(paymentId)}
+            className="bg-yellow-600 text-white px-4 py-1 rounded-md hover:bg-yellow-700 transition"
+            aria-label={`Mark payment ${paymentId} as unpaid`}
+          >
+            Mark as Unpaid
           </button>
         )}
 
@@ -80,6 +89,65 @@ const PaymentRecordRow = ({
   );
 };
 
+// Modal for viewing payment details
+const PaymentDetailsModal = ({ payment, onClose }) => {
+  if (!payment) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold text-blue-900 mb-4">Payment Details</h2>
+        <div className="space-y-2">
+          <p><strong>Payment ID:</strong> {payment.paymentId}</p>
+          <p><strong>Request Number:</strong> {payment.requestNumber}</p>
+          <p><strong>Requester Name:</strong> {payment.requesterName}</p>
+          <p><strong>Payment Method:</strong> {payment.paymentMethod}</p>
+          <p><strong>Amount:</strong> ₱{payment.amount}</p>
+          <p><strong>Status:</strong> <StatusBadge status={payment.status} /></p>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Confirmation modal for marking paid/unpaid
+const ConfirmationModal = ({ isOpen, onConfirm, onCancel, action, paymentId }) => {
+  if (!isOpen) return null;
+
+  const message = action === "paid" 
+    ? `Are you sure you want to mark payment ${paymentId} as Paid?`
+    : `Are you sure you want to mark payment ${paymentId} as Unpaid?`;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold text-blue-900 mb-4">Confirm Action</h2>
+        <p className="text-gray-700 mb-6">{message}</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onCancel}
+            className="border border-gray-400 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ✅ Main PaymentTracking Page
 const PaymentTracking = () => {
   const navigate = useNavigate();
@@ -87,9 +155,7 @@ const PaymentTracking = () => {
   // States
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
-
-  // Mock payment data
-  const paymentRecords = [
+  const [paymentRecords, setPaymentRecords] = useState([
     {
       id: 1,
       paymentId: "PAY-2024-001234",
@@ -98,7 +164,6 @@ const PaymentTracking = () => {
       paymentMethod: "Cash",
       amount: 100,
       status: "Paid",
-      showMarkAsPaid: true,
     },
     {
       id: 2,
@@ -108,7 +173,6 @@ const PaymentTracking = () => {
       paymentMethod: "Cash",
       amount: 200,
       status: "Paid",
-      showMarkAsPaid: false,
     },
     {
       id: 3,
@@ -118,9 +182,11 @@ const PaymentTracking = () => {
       paymentMethod: "Online Banking",
       amount: 350,
       status: "Pending",
-      showMarkAsPaid: false,
     },
-  ];
+  ]);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // { action: 'paid' | 'unpaid', paymentId }
 
   // Filter logic
   const filteredPayments = paymentRecords.filter((record) => {
@@ -188,10 +254,35 @@ const PaymentTracking = () => {
   // Other Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
-  const handleMarkAsPaid = (paymentId) =>
-    alert(`Marking payment ${paymentId} as Paid - feature coming soon!`);
-  const handleViewDetails = (paymentId) =>
-    alert(`Viewing details for payment ${paymentId} - feature coming soon!`);
+  const handleMarkAsPaid = (paymentId) => {
+    setConfirmAction({ action: "paid", paymentId });
+  };
+  const handleMarkAsUnpaid = (paymentId) => {
+    setConfirmAction({ action: "unpaid", paymentId });
+  };
+  const handleViewDetails = (paymentId) => {
+    const payment = paymentRecords.find((record) => record.paymentId === paymentId);
+    setSelectedPayment(payment);
+    setShowModal(true);
+  };
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedPayment(null);
+  };
+  const confirmActionHandler = () => {
+    if (!confirmAction) return;
+    setPaymentRecords((prevRecords) =>
+      prevRecords.map((record) =>
+        record.paymentId === confirmAction.paymentId
+          ? { ...record, status: confirmAction.action === "paid" ? "Paid" : "Pending" }
+          : record
+      )
+    );
+    setConfirmAction(null);
+  };
+  const cancelActionHandler = () => {
+    setConfirmAction(null);
+  };
 
   return (
     <AdminLayout>
@@ -275,13 +366,27 @@ const PaymentTracking = () => {
               paymentMethod={record.paymentMethod}
               amount={record.amount}
               status={record.status}
-              showMarkAsPaid={record.showMarkAsPaid}
-              onMarkAsPaid={() => handleMarkAsPaid(record.paymentId)}
-              onViewDetails={() => handleViewDetails(record.paymentId)}
+              onMarkAsPaid={handleMarkAsPaid}
+              onMarkAsUnpaid={handleMarkAsUnpaid}
+              onViewDetails={handleViewDetails}
             />
           ))
         )}
       </section>
+
+      {/* Modals */}
+      {showModal && (
+        <PaymentDetailsModal payment={selectedPayment} onClose={closeModal} />
+      )}
+      {confirmAction && (
+        <ConfirmationModal
+          isOpen={!!confirmAction}
+          onConfirm={confirmActionHandler}
+          onCancel={cancelActionHandler}
+          action={confirmAction.action}
+          paymentId={confirmAction.paymentId}
+        />
+      )}
     </AdminLayout>
   );
 };
