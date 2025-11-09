@@ -1,5 +1,7 @@
+#<editor-fold desc="Imports">
 from django.db.models import Count, Q
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -11,14 +13,20 @@ from users.models import User
 from users.auth import TokenAuthentication
 from doccatalog.models import DocumentType
 from payments.models import Payment
+from notifications.models import Notification, Templates
 from .serializers import (CheckRequestNumberSerializer, CheckRequestByStudentSerializer,
                           RequestCreateSerializer, RequestReceiptSerializer,
-                          LoginSerializer, AdminDashboardSerializer, AdminRequestManagerSerializer)
+                          LoginSerializer, AdminDashboardSerializer, AdminRequestManagerSerializer,
+                          AdminSendNotifSerializer, AdminNotifHistorySerializer, AdminNotifTemplatesSerializer)
+
+from hardware_scripts.gsm import *
+from hardware_scripts.printer import *
 
 from datetime import datetime, timedelta, UTC
 import jwt
+#</editor-fold>
 
-# Kiosk API Views
+# <editor-fold desc="Kiosk API Views">
 @api_view(['POST'])
 def check_request_number_view(request):
     req_number = request.data.get('request_number')
@@ -115,8 +123,9 @@ def request_receipt_view(request, request_id):
 
     serializer = RequestReceiptSerializer(req)
     return Response(serializer.data, status=status.HTTP_200_OK)
+# </editor-fold>
 
-#Admin API Views
+# <editor-fold desc="Admin API Views">
 @api_view(['POST'])
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
@@ -152,6 +161,7 @@ def login_view(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#Our system uses token-based authentication so call this to refresh the token
 @api_view(['POST'])
 def refresh_token_view(request):
     refresh_token = request.data.get('refresh_token')
@@ -285,20 +295,113 @@ def admin_request_manager_view(request):
     serializer = AdminRequestManagerSerializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-@api_view(['GET'])
+@api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def admin_payment_manager_view(request):
-    pass
+def admin_send_notification_view(request):
+    serializer = AdminSendNotifSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        #EMAIL/SMS LOGIC (Scripts)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def admin_notification_manager_view(request):
-    pass
+def admin_notification_history_view(request):
+    search_query = request.query_params.get('search', '').strip()
+    notif_status = request.query_params.get('status')
+
+    queryset = (
+        Notification.objects
+        .select_related('user_id')
+        .order_by('-created_at')
+    )
+
+    if search_query:
+        queryset = queryset.filter(
+            Q(user_id__first_name__icontains=search_query) |
+            Q(user_id__last_name__icontains=search_query) |
+            Q(user_id__email_address__icontains=search_query) |
+            Q(subject__icontains=search_query)
+        )
+
+    if notif_status:
+        queryset = queryset.filter(status=notif_status)
+
+    serializer = AdminNotifHistorySerializer(queryset, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_notification_templates_view(request):
+    if request.method == 'GET':
+        templates = Templates.objects.all().order_by('type')
+        serializer = AdminNotifTemplatesSerializer(templates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'POST':
+        serializer = AdminNotifTemplatesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_notification_template_detail_view(request, pk):
+    template = get_object_or_404(Templates, pk=pk)
+
+    if request.method == 'GET':
+        serializer = AdminNotifTemplatesSerializer(template)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'PUT':
+        serializer = AdminNotifTemplatesSerializer(template, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        template.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def admin_user_manager_view(request):
     pass
+
+'''
+5. USER MANAGEMENT
+    - Has a button for managing roles leading to MANAGE ROLES (5A)
+    - Has a button for adding a user leading to ADD USER (5B)
+    - Displays system users in cards with information like full name, role, status, email address, what department they belong in, last login time, when the user was created, and each card has a button for deactivating the user, resetting the password, editing the user which leads to EDIT USER (5C), and deleting the user which leads to DELETE USER (5D)
+      a. MANAGE ROLES
+        - Has cards that show the roles and the permissions that each role is attached to
+      b. ADD USER
+        - Has a field for full name (Should probably be separated into first name, middle name, last name)
+        - Has a field for email
+        - Has a dropdown for role
+        - Has a field for department
+        - Has a field for temporary password
+        - Has a button for adding user
+      c. EDIT USER
+        - Has a field for full name (Should probably be separated into first name, middle name, last name)
+        - Has a field for email
+        - Has a dropdown for role
+        - Has a field for department
+        - Has a dropdown for status
+        - Has a button for saving changes
+      d. DELETE USER
+        - Has a button for deleting the user
+        - Has a button for cancelling action
+'''
+# </editor-fold>
+
+#Hardware API Views

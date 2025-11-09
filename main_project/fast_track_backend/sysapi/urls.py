@@ -1,7 +1,9 @@
 from django.urls import path
 from .views import (check_request_number_view, check_request_by_student_view, get_request_details_view,
                     request_receipt_view, request_document_view, login_view,
-                    refresh_token_view, admin_dashboard_view, admin_request_manager_view)
+                    refresh_token_view, admin_dashboard_view, admin_request_manager_view,
+                    admin_send_notification_view, admin_notification_history_view, admin_notification_templates_view,
+                    admin_notification_template_detail_view)
 
 urlpatterns = [
     #Check Status
@@ -19,5 +21,9 @@ urlpatterns = [
     path('refresh/', refresh_token_view, name='refresh'),
     #Admin Dashboard
     path('admin-dashboard/home/', admin_dashboard_view, name='admin-dashboard'),
-    path('admin-dashboard/request-management/', admin_request_manager_view, name='admin-request-management')
+    path('admin-dashboard/request-management/', admin_request_manager_view, name='admin-request-management'),
+    path('admin-dashboard/notifications/send', admin_send_notification_view, name='admin-notification-send'),
+    path('admin-dashboard/notifications/history', admin_notification_history_view, name='admin-notification-history'),
+    path('admin-dashboard/notifications/templates', admin_notification_templates_view, name='admin-notification-templates'),
+    path('admin-dashboard/notifications/templates-detail', admin_notification_template_detail_view, name='admin-notification-template-detail'),
 ]

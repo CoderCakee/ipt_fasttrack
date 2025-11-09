@@ -3,7 +3,7 @@ from rest_framework import serializers
 from users.models import User, Role
 from requests.models import Request, RequestedDocuments, RequestPurpose, RequestStatus
 from doccatalog.models import DocumentType
-from payments.models import Payment
+from notifications.models import Notification, Templates
 from datetime import datetime
 
 class RequestedDocumentCheckSerializer(serializers.ModelSerializer):
@@ -65,6 +65,7 @@ class CheckRequestNumberSerializer(serializers.ModelSerializer):
         current_year = datetime.now().year
         return f'FAST-{current_year}-{obj.request_id}'
 
+#!!DEPRECIATE
 class CheckRequestByStudentSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=35)
     last_name = serializers.CharField(max_length=35)
@@ -348,29 +349,124 @@ class AdminRequestManagerSerializer(serializers.ModelSerializer):
         serializer = RequestedDocumentCheckSerializer(requested_docs, many=True)
         return serializer.data
 
-class AdminPaymentManagerSerializer(serializers.ModelSerializer):
-    revenue = serializers.SerializerMethodField()
-    pending_payments = serializers.SerializerMethodField()
-    paid_today = serializers.SerializerMethodField()
-    failed_payment = serializers.SerializerMethodField()
-    first_name = serializers.CharField(source='request_id.user_id.first_name',read_only=True)
+class AdminSendNotifSerializer(serializers.ModelSerializer):
+    #POST
+    recipient = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source='user_id'
+    )
+    request_number = serializers.CharField(write_only=True, required=False)
+    subject = serializers.CharField(required=False, allow_blank=True)
+    template_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
-        model = Payment
+        model = Notification
+        fields = [
+            'notif_id',
+            'type',
+            'recipient',
+            'request_number',
+            'message',
+            'subject',
+            'template_id',
+            'status',
+            'created_at',
+            'sent_at',
+        ]
+        read_only_fields = ['notif_id', 'status', 'created_at', 'sent_at']
 
-'''
-3. PAYMENT TRACKING
-    - Displays statistics like revenue, pending payments, how many students paid today, and how many payments failed
-    - Has a search bar that the admin can use to find requests by payments (Can search by name, ID, or request number)
-    - Has a dropdown filter using payment status
-    - Has a button for exporting data (probably in .csv or .xlsx)
-    - Displays payments in cards, each containing payment number, request number, full name, payment method, date paid, transaction ID (?), total amount, payment status and the card has a button for changing the status of the payment (currently only has button to change the status to paid but should have button for other statuses as well). Each card also has a button for the detailed view leading to PAYMENT DETAIL VIEW (3A)
-      a. PAYMENT DETAIL VIEW
-        - Opens a window showing payment details like payment number, request number, full name, total amount, payment method, status
-'''
+    def create(self, validated_data):
+        request_number = validated_data.pop('request_number', None)
+        reference_table = 'requests'
+        reference_id = None
 
-class AdminNotifManagerSerializer(serializers.ModelSerializer):
+        if request_number:
+            try:
+                request_id = int(request_number.split('-')[-1])
+                request_obj = Request.objects.get(request_id=request_id)
+                reference_id = request_obj.request_id
+            except (Request.DoesNotExist, ValueError):
+                raise serializers.ValidationError("Invalid request number provided.")
+
+        validated_data['reference_table'] = reference_table
+        validated_data['reference_id'] = reference_id
+
+        notification = Notification.objects.create(**validated_data)
+        return notification
+
+class AdminNotifHistorySerializer(serializers.ModelSerializer):
+    #GET
+    recipient_name = serializers.SerializerMethodField()
+    recipient_email = serializers.EmailField(source='user_id.email', read_only=True)
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = [
+            'notif_id',
+            'type',
+            'type_display',
+            'subject',
+            'recipient_name',
+            'recipient_email',
+            'message',
+            'status',
+            'created_at',
+            'sent_at',
+        ]
+
+    def get_recipient_name(self, obj):
+        u = obj.user_id
+        return f"{u.first_name} {u.last_name}".strip()
+
+class AdminNotifTemplatesSerializer(serializers.ModelSerializer):
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = Templates
+        fields = [
+            'template_id',
+            'type',
+            'type_display',
+            'subject',
+            'template_msg',
+        ]
+        read_only_fields = ['template_id', 'type_display']
+
+    def validate(self, data):
+        if data.get('type') == 'email' and not data.get('subject'):
+            raise serializers.ValidationError("Email templates must have a subject.")
+
+        return data
+
+class AdminUserGetSerializer(serializers.ModelSerializer):
     pass
 
-class AdminUserManagerSerializer(serializers.ModelSerializer):
+class AdminAddUserSerializer(serializers.ModelSerializer):
     pass
+
+'''
+5. USER MANAGEMENT
+    - Has a button for managing roles leading to MANAGE ROLES (5A)
+    - Has a button for adding a user leading to ADD USER (5B)
+    - Displays system users in cards with information like full name, role, status, email address, what department they belong in, last login time, when the user was created, and each card has a button for deactivating the user, resetting the password, editing the user which leads to EDIT USER (5C), and deleting the user which leads to DELETE USER (5D)
+      a. MANAGE ROLES
+        - Has cards that show the roles and the permissions that each role is attached to
+      b. ADD USER
+        - Has a field for full name (Should probably be separated into first name, middle name, last name)
+        - Has a field for email
+        - Has a dropdown for role
+        - Has a field for department
+        - Has a field for temporary password
+        - Has a button for adding user
+      c. EDIT USER
+        - Has a field for full name (Should probably be separated into first name, middle name, last name)
+        - Has a field for email
+        - Has a dropdown for role
+        - Has a field for department
+        - Has a dropdown for status
+        - Has a button for saving changes
+      d. DELETE USER
+        - Has a button for deleting the user
+        - Has a button for cancelling action
+'''

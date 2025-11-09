@@ -308,3 +308,15 @@ Problems Identified (Frontend):
 - Multi-Document Request Receipt only shows one of the multiple documents requested
 - Multi-Document Request doesn't save to the database
 - After creation of requests, the shown request number is hardcoded
+
+Development Notes:
+- Remove payment manager (Including serializers, views, models, and tables from the database)
+- Depreciate the single and multi document request feature and replace with a single document request feature that can take either one or many document requests
+- Remove searching of student details in check request status, implement QR code system (Use webcam)
+- In requesting a document, implement an ID tap system for retrieving information (Will probably simulate this using RFID cards and scanner) but retain the manual input for people without IDs or if the ID system is down
+
+Kiosk Components:
+- (Supposedly) Capacitive Touchscreen / Monitor + Keyboard and Mouse
+- QR Code Scanner / Webcam
+- RFID Scanner (LF 125Khz)
+- USB GSM Modem / Arduino + GSM Module

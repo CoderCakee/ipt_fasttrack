@@ -1,13 +1,19 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import UserAvatar from "../../assets/avatar.png";
 import FastTrackLogo from "../../assets/logo.png";
 import RequestIcon from "../../assets/requestdocument.png";
 import PendingIcon from "../../assets/pending.png";
 import CompletedIcon from "../../assets/completed.png";
 import UsersIcon from "../../assets/activeusers.png";
+import DashboardIcon from "../../assets/dashboard.png";
+import RequestManagementIcon from "../../assets/requestdocument.png";
+import PaymentTrackingIcon from "../../assets/payment.png";
+import NotificationManagementIcon from "../../assets/notification.png";
+import UserManagementIcon from "../../assets/activeusers.png";
+import ReportIcon from "../../assets/report.png";
 
-// Icons as images
+// Icons for dashboard cards
 const IconRequest = () => (
   <img src={RequestIcon} alt="Request Icon" className="w-10 h-10 inline-block ml-1" />
 );
@@ -21,18 +27,21 @@ const IconUsers = () => (
   <img src={UsersIcon} alt="Users Icon" className="w-10 h-10 inline-block ml-1" />
 );
 
-// Sidebar button component
-const SidebarButton = ({ children, active = false, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-3 text-sm rounded-md w-full transition-colors duration-300 ${
-      active
-        ? "bg-blue-300 text-blue-900 font-semibold"
-        : "text-white hover:bg-blue-700 hover:text-white"
-    }`}
+// Sidebar Button using NavLink
+const SidebarButton = ({ to, icon, label }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `flex items-center gap-2 px-4 py-3 text-sm rounded-md w-full transition-colors duration-300 ${
+        isActive
+          ? "bg-blue-300 text-blue-900 font-semibold"
+          : "text-white hover:bg-blue-700 hover:text-white"
+      }`
+    }
   >
-    {children}
-  </button>
+    {icon}
+    {label}
+  </NavLink>
 );
 
 // Tag component
@@ -69,31 +78,38 @@ const RecentRequestRow = ({
 );
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-
   // Sidebar items
   const sidebarItems = [
     {
       label: "Dashboard",
       route: "/AdminDashboard",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M3 6h18M3 18h18" />
-        </svg>
-      ),
+      icon: <img src={DashboardIcon} alt="Dashboard" className="w-5 h-5" />,
     },
-    { label: "Request Management", route: "/RequestManagement", icon: null },
-    { label: "Payment Tracking", route: "/PaymentTracking", icon: null },
-    { label: "Notifications", route: "/NotificationManagement", icon: null },
-    { label: "User Management", route: "/UserManagement", icon: null },
-    { label: "Reports & Logs", route: "/Reports", icon: null },
+    {
+      label: "Request Management",
+      route: "/RequestManagement",
+      icon: <img src={RequestManagementIcon} alt="Request" className="w-5 h-5" />,
+    },
+    {
+      label: "Payment Tracking",
+      route: "/PaymentTracking",
+      icon: <img src={PaymentTrackingIcon} alt="Payment" className="w-5 h-5" />,
+    },
+    {
+      label: "Notifications",
+      route: "/NotificationManagement",
+      icon: <img src={NotificationManagementIcon} alt="Notifications" className="w-5 h-5" />,
+    },
+    {
+      label: "User Management",
+      route: "/UserManagement",
+      icon: <img src={UserManagementIcon} alt="Users" className="w-5 h-5" />,
+    },
+    {
+      label: "Reports & Logs",
+      route: "/Reports",
+      icon: <img src={ReportIcon} alt="Reports" className="w-5 h-5" />,
+    },
   ];
 
   return (
@@ -122,27 +138,19 @@ const AdminDashboard = () => {
         {/* SIDEBAR */}
         <nav className="w-60 bg-blue-900 text-white flex flex-col space-y-2 px-3 py-6 overflow-y-auto flex-shrink-0">
           {sidebarItems.map(({ label, route, icon }) => (
-            <SidebarButton
-              key={label}
-              onClick={() => navigate(route)}
-              active={window.location.pathname === route}
-            >
-              {icon} {label}
-            </SidebarButton>
+            <SidebarButton key={label} to={route} icon={icon} label={label} />
           ))}
         </nav>
 
         {/* MAIN CONTENT */}
         <main className="flex-1 bg-white p-8 overflow-y-auto min-h-0">
-        {/* Page title and description */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-blue-900 mb-1">
-          Dashboard Overview
-        </h1>
-        <p className="text-gray-700 text-sm">
-          Real-time summary of FAST Track system activity
-        </p>
-      </div>
+          {/* Page title and description */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-blue-900 mb-1">Dashboard Overview</h1>
+            <p className="text-gray-700 text-sm">
+              Real-time summary of FAST Track system activity
+            </p>
+          </div>
 
           {/* Stats cards */}
           <section className="flex flex-wrap gap-5 mb-8">
