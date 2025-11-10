@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 
+// Progress steps
 const progressSteps = [
   { id: 1, label: "Request Received" },
   { id: 2, label: "Processing" },
@@ -12,13 +13,45 @@ const progressSteps = [
 
 const CheckRequestReceipt = () => {
   const navigate = useNavigate();
-  const data = useLocation().state?.data;
+  const location = useLocation();
+  const [data, setData] = useState(location.state?.data || null);
+  const [loading, setLoading] = useState(!data);
 
-  if (!data) {
-    navigate("/CheckRequestStatus");
-    return null;
+  // Extract request_number from URL query if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const requestNumber = params.get("request_number");
+
+    if (!data) {
+      setLoading(true);
+      setTimeout(() => {
+        // Use either fetched request_number or default
+        const fetchedData = {
+          first_name: "John",
+          last_name: "Doe",
+          student_number: "2023-12345",
+          request_number: requestNumber || "REQ-0001",
+          date_requested: "2025-11-10",
+          documents: [{ doctype_name: "Transcript of Records" }],
+          total_amount: "500 PHP",
+          request_status: "Processing",
+          completion_percent: 50,
+        };
+        setData(fetchedData);
+        setLoading(false);
+      }, 500); // small delay to simulate fetch
+    }
+  }, [data, location.search]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#2C3E9E] text-white">
+        <p>Loading request details...</p>
+      </div>
+    );
   }
 
+  // Prepare fields
   const requester_name = `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim() || "N/A";
   const student_number = data.student_number ?? "N/A";
   const request_number = data.request_number ?? "N/A";
@@ -28,6 +61,7 @@ const CheckRequestReceipt = () => {
   const status = data.request_status ?? data.status ?? "Processing";
   const completion_percent = data.completion_percent ?? 50;
 
+  // Determine current step
   const statusLower = status.toLowerCase();
   let currentStep = 2;
   if (statusLower === "request received" || statusLower === "received") currentStep = 1;

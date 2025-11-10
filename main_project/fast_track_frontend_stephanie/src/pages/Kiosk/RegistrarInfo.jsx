@@ -21,7 +21,7 @@ const RegistrarInfo = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#2C3E9E] font-sans text-gray-800 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col bg-[#2C3E9E] font-sans text-gray-800 overflow-x-hidden">
       {/* Background */}
       <KioskBackground opacity={10} blueOpacity={80} />
 
@@ -30,10 +30,8 @@ const RegistrarInfo = () => {
         <KioskHeader />
 
         {/* Main Content */}
-       <main className="flex-grow flex justify-center items-start px-4 sm:px-6 py-10 mt-10">
-  <div className="bg-white border-2 border-yellow-400 rounded-lg shadow-2xl max-w-3xl w-full p-6 pt-6 overflow-y-auto max-h-[80vh]">
-
-
+        <main className="flex-grow flex justify-center items-start px-4 sm:px-6 py-10 mt-10">
+          <div className="bg-white border-2 border-yellow-400 rounded-lg shadow-2xl max-w-3xl w-full p-6 pt-6">
             
             {/* Back Button */}
             <button
@@ -119,10 +117,7 @@ const RegistrarInfo = () => {
                   "Course Description/Syllabus",
                 ].map((service) => (
                   <li key={service} className="flex items-center space-x-2">
-                    <CheckCircleIcon
-                      className="h-5 w-5 text-green-600 flex-shrink-0"
-                      aria-hidden="true"
-                    />
+                    <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />
                     <span>{service}</span>
                   </li>
                 ))}
@@ -149,7 +144,6 @@ const RegistrarInfo = () => {
 
             {/* Important Reminders */}
             <section className="space-y-4">
-              {/* Pickup Reminders */}
               <div className="bg-white rounded-md border border-blue-200 p-4 shadow-sm text-sm text-blue-700">
                 <div className="flex items-center mb-2">
                   <ExclamationCircleIcon className="h-5 w-5 mr-2 text-blue-700 flex-shrink-0" />
@@ -165,7 +159,6 @@ const RegistrarInfo = () => {
                 </div>
               </div>
 
-              {/* Representative Reminders */}
               <div className="bg-white rounded-md border border-blue-200 p-4 shadow-sm text-sm text-blue-700">
                 <h4 className="font-semibold mb-1 flex items-center">
                   <InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
@@ -178,7 +171,6 @@ const RegistrarInfo = () => {
                 </ul>
               </div>
 
-              {/* First-Time TOR Requesters */}
               <div className="bg-blue-50 rounded-md border border-blue-300 p-4 shadow-sm text-sm text-blue-800">
                 <h4 className="font-semibold mb-1 flex items-center">
                   <ExclamationTriangleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
@@ -190,7 +182,6 @@ const RegistrarInfo = () => {
                 </p>
               </div>
 
-              {/* Account Status */}
               <div className="bg-blue-50 rounded-md border border-blue-300 p-4 shadow-sm text-sm text-blue-800">
                 <h4 className="font-semibold mb-1 flex items-center">
                   <ExclamationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />

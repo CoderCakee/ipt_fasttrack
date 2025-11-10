@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import KioskBackground from "../../components/KioskBackground";
-import FastTrackLogo from "../../assets/logo.png"; // ✅ Your logo image
+import FastTrackLogo from "../../assets/logo.png"; 
+import { useNavigate } from "react-router-dom"; 
 
 export default function LoginForm() {
+  const navigate = useNavigate(); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -12,7 +14,7 @@ export default function LoginForm() {
   };
 
   const handleGuest = () => {
-    alert("Continuing as Guest / Alumni");
+    navigate("/HomeAlumni");
   };
 
   const handleForgotPassword = () => {
@@ -22,7 +24,7 @@ export default function LoginForm() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#2C3E9E] text-white font-sans">
       {/* Background */}
-      <KioskBackground opacity={0} blueOpacity={80} />
+      <KioskBackground opacity={15} blueOpacity={80} />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-lg px-6 sm:px-8">
