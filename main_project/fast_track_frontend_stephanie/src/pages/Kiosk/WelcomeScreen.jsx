@@ -1,19 +1,19 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import FastTrackLogo from "../../assets/logo.png";
 import background from "../../assets/background.webp";
 
 const WelcomeScreen = () => {
-    const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
 
-    const handleStartClick = () => {
-      navigate("/KioskServicesMenu"); // Navigate to KioskServicesMenu
+  const handleStartClick = () => {
+    navigate("/KioskServicesMenu"); // Navigate to the services menu
   };
 
   return (
-    // Container with full screen height and flex column
+    // Full-screen container with vertical layout
     <div className="min-h-screen flex flex-col">
-      {/* Top logo section */}
+      {/* Top section with centered logo */}
       <header className="bg-gray-100 flex justify-center">
         <img
           src={FastTrackLogo}
@@ -25,19 +25,17 @@ const WelcomeScreen = () => {
       {/* Main section with background image and centered button */}
       <main
         className="flex-grow flex items-center justify-center bg-center bg-cover relative"
-        style={{
-          backgroundImage: `url(${background})`,
-        }}
+        style={{ backgroundImage: `url(${background})` }}
       >
-        {/* Overlay with semi-transparent blue filter */}
+        {/* Semi-transparent blue overlay */}
         <div className="absolute inset-0 bg-blue-900 bg-opacity-75"></div>
 
-        {/* Centered button with hover effect, above overlay */}
+        {/* Centered start button */}
         <button
-          className="relative px-12 py-4 bg-blue-800 text-white font-bold text-xl uppercase rounded-full shadow-lg hover:bg-blue-700 transition-colors"
           type="button"
-          aria-label="Click to start"
           onClick={handleStartClick}
+          aria-label="Click to start"
+          className="relative px-20 py-8 bg-blue-800 text-white font-bold text-3xl uppercase rounded-full shadow-2xl hover:bg-blue-700 hover:scale-105 transform transition-all duration-300 ease-in-out"
         >
           CLICK TO START
         </button>

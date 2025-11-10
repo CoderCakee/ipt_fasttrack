@@ -80,12 +80,12 @@ const CheckRequestReceipt = () => {
       <div className="relative z-10 bg-white rounded-xl border border-yellow-400 max-w-[900px] w-full flex flex-col lg:flex-row p-8 shadow-xl overflow-hidden">
         {/* Left Section */}
         <div className="w-full lg:w-3/5 pr-0 lg:pr-8 mb-6 lg:mb-0">
-          <h2 className="text-center text-lg font-serif font-bold text-black mb-6">Request Details</h2>
+          <h2 className="text-center text-lg font-serif text-black mb-6">Request Details</h2>
 
           <div className="grid grid-cols-2 gap-y-6 text-sm font-serif text-[#2c3e9e]">
             <div>
               <p className="text-xs font-semibold mb-1">Requester’s Name</p>
-              <p className="text-black font-semibold text-base">{requester_name}</p>
+              <p className="text-black font-medium text-base">{requester_name}</p>
 
               <p className="mt-6 text-xs font-semibold mb-1">Request Number</p>
               <p className="text-black font-medium">{request_number}</p>
@@ -99,10 +99,10 @@ const CheckRequestReceipt = () => {
             </div>
           </div>
 
-          <hr className="border border-[#acc3dc] w-full my-6" />
+          <hr className="border-[0.5px] border-[#acc3dc] w-full my-6" />
 
           <div>
-            <p className="mb-2 text-sm font-semibold font-serif text-[#2c3e9e]">Document(s) Requested</p>
+            <p className="mb-2 text-m font-semibold font-serif text-[#2c3e9e]">Document(s) Requested</p>
             {documents.length > 0 ? (
               <div className="flex flex-wrap gap-2 mb-1">
                 {documents.map((doc) => (
@@ -124,18 +124,32 @@ const CheckRequestReceipt = () => {
 
           <hr className="border border-[#acc3dc] w-full my-6" />
 
-          {/* Status & Completion */}
-          <div className="mb-6 flex flex-col lg:flex-row items-start lg:items-center justify-between">
-            <button
-              type="button"
-              className="inline-flex items-center space-x-2 bg-[#2c3e9e] text-white text-sm rounded-full px-4 py-1 shadow font-semibold"
-            >
-              <span>{status}</span>
-            </button>
-            <span className="mt-2 lg:mt-0 text-[#2c3e9e] text-sm font-semibold font-serif">
-              {completion_percent}% Complete
-            </span>
-          </div>
+   {/* Status & Completion */}
+<div className="mb-6 flex flex-col space-y-2">
+  {/* Label */}
+  <p className="text-sm font-semibold font-serif text-[#2c3e9e]">
+    Current Status
+  </p>
+
+  {/* Row with button and completion */}
+  <div className="flex items-center w-full">
+    {/* Status Button */}
+    <button
+      type="button"
+      className="inline-flex items-center bg-[#2c3e9e] text-white text-sm rounded-full px-4 py-1 shadow font-semibold flex-none"
+    >
+      <span>{status}</span>
+    </button>
+
+    {/* Completion Percent pushed to the right */}
+    <span className="ml-auto text-sm font-semibold font-serif text-[#2c3e9e]">
+      {completion_percent}% Complete
+    </span>
+  </div>
+</div>
+
+
+
 
           {/* Progress Bar */}
           <div className="w-full mb-6">

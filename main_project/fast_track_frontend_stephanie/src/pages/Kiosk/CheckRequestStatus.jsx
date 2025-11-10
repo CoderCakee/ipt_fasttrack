@@ -8,14 +8,18 @@ export default function CheckRequestStatus() {
   const navigate = useNavigate();
   const [qrData, setQrData] = useState("");
 
+  // Navigate back to the services menu
   const handleBack = () => navigate("/KioskServicesMenu");
 
+  // Placeholder for QR code scanning
   const handleScan = () => {
-    // Placeholder for QR code scanning integration
     const scannedRequestNumber = "FAST-2024-510586";
     setQrData(scannedRequestNumber);
-    // Navigate to receipt page
-    navigate("/CheckRequestReceipt", { state: { data: { request_number: scannedRequestNumber } } });
+
+    // Navigate to receipt page with scanned data
+    navigate("/CheckRequestReceipt", {
+      state: { data: { request_number: scannedRequestNumber } },
+    });
   };
 
   return (
@@ -28,6 +32,7 @@ export default function CheckRequestStatus() {
 
       {/* QR Scan Card */}
       <main className="relative z-10 bg-white rounded-3xl max-w-md w-full p-10 shadow-2xl flex flex-col items-center text-center border border-gray-200">
+        
         {/* Back Button */}
         <button
           type="button"
@@ -41,6 +46,8 @@ export default function CheckRequestStatus() {
         <h1 className="text-[#2C3E9E] font-bold text-3xl mb-2 tracking-wide">
           Scan Your QR Code
         </h1>
+
+        {/* Subtitle / Description */}
         <p className="text-gray-700 text-sm mb-8 px-4">
           Present your QR code here to check the status of your document request.
         </p>
