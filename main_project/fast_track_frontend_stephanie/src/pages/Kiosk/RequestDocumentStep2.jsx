@@ -7,7 +7,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 export default function RequestDocumentStep2() {
   const navigate = useNavigate();
 
-  // Mock data
+  // Mock data (replace with API if needed)
   const documentTypes = [
     { doctype_id: 1, name: "Transcript of Records", price: 150 },
     { doctype_id: 2, name: "Diploma", price: 200 },
@@ -22,17 +22,16 @@ export default function RequestDocumentStep2() {
 
   const [selectedDocuments, setSelectedDocuments] = useState({});
   const [notes, setNotes] = useState("");
+  const [errors, setErrors] = useState({});
 
   const toggleDocument = (doctype_id) => {
     setSelectedDocuments((prev) => {
       const newSelection = { ...prev };
-      if (newSelection[doctype_id]) {
-        delete newSelection[doctype_id];
-      } else {
-        newSelection[doctype_id] = { copies: 1, purpose: "" };
-      }
+      if (newSelection[doctype_id]) delete newSelection[doctype_id];
+      else newSelection[doctype_id] = { copies: 1, purpose: "" };
       return newSelection;
     });
+    setErrors({});
   };
 
   const handlePurposeChange = (doctype_id, value) => {
@@ -40,6 +39,7 @@ export default function RequestDocumentStep2() {
       ...prev,
       [doctype_id]: { ...prev[doctype_id], purpose: Number(value) },
     }));
+    setErrors({});
   };
 
   const handleCopiesChange = (doctype_id, value) => {
@@ -47,37 +47,58 @@ export default function RequestDocumentStep2() {
       ...prev,
       [doctype_id]: { ...prev[doctype_id], copies: Number(value) },
     }));
+    setErrors({});
   };
 
   const handleNotesChange = (e) => setNotes(e.target.value);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (Object.keys(selectedDocuments).length === 0) {
-      alert("Select at least one document.");
-      return;
-    }
-
-    for (let key of Object.keys(selectedDocuments)) {
-      if (!selectedDocuments[key].purpose) {
-        alert("Select a purpose for all selected documents.");
-        return;
-      }
-    }
-
-    const payload = Object.keys(selectedDocuments).map((id) => ({
-      doctype_id: Number(id),
-      ...selectedDocuments[id],
-    }));
-
-    console.log("Submission Payload:", payload, "Notes:", notes);
-    alert("Request submitted! Check console for payload.");
-  };
-
   const handleBack = () => navigate(-1);
 
   const copyOptions = Array.from({ length: 10 }, (_, i) => i + 1);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    if (Object.keys(selectedDocuments).length === 0)
+      newErrors.documents = "Select at least one document.";
+
+    Object.keys(selectedDocuments).forEach((id) => {
+      if (!selectedDocuments[id].purpose)
+        newErrors[id] = "Select a purpose for this document.";
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // ✅ Build enriched payload for next step (includes name, price, and purpose description)
+    const payload = Object.keys(selectedDocuments).map((id) => {
+      const docType = documentTypes.find((d) => d.doctype_id === Number(id));
+      const purpose = purposes.find(
+        (p) => p.purpose_id === selectedDocuments[id].purpose
+      );
+      return {
+        doctype_id: Number(id),
+        name: docType?.name || "",
+        price: docType?.price || 0,
+        copies: selectedDocuments[id].copies,
+        purpose: selectedDocuments[id].purpose,
+        purposeDescription: purpose?.description || "",
+      };
+    });
+
+    console.log("Submission Payload:", payload, "Notes:", notes);
+
+    // ✅ Navigate to Step 3 with complete document data
+    navigate("/RequestDocumentStep3", {
+      state: {
+        documents: payload,
+        notes,
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen relative flex flex-col bg-[#2C3E9E]">
@@ -87,7 +108,6 @@ export default function RequestDocumentStep2() {
 
         <main className="flex-grow flex justify-center items-start px-4 pt-16 pb-8">
           <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-10 mx-auto mt-12">
-
             {/* Header */}
             <div className="relative mb-6">
               <button
@@ -103,7 +123,7 @@ export default function RequestDocumentStep2() {
               </h2>
             </div>
 
-            {/* Progress Tracker (Step 2 active) */}
+            {/* Progress Tracker */}
             <div className="flex justify-center items-center space-x-6 mb-10 w-2/3 max-w-sm mx-auto">
               {[1, 2, 3].map((step) => (
                 <React.Fragment key={step}>
@@ -119,36 +139,44 @@ export default function RequestDocumentStep2() {
               ))}
             </div>
 
+            {/* Global Error */}
+            {errors.documents && (
+              <p className="text-red-600 mb-4">{errors.documents}</p>
+            )}
+
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-
               {/* Document Selection */}
               <fieldset className="space-y-4">
-                <legend className="text-gray-900 font-semibold mb-1">Select Documents</legend>
+                <legend className="text-blue-900 font-semibold mb-1">Select Documents</legend>
 
                 {documentTypes.map(({ doctype_id, name, price }) => {
-                  const checked = !!selectedDocuments[doctype_id];
+                  const selected = !!selectedDocuments[doctype_id];
                   return (
-                    <div key={doctype_id} className="border rounded p-3 flex flex-col space-y-2">
+                    <div key={doctype_id} className="border rounded p-4 flex flex-col space-y-3">
                       <label className="flex items-center justify-between">
-                        <span>{name} (₱{price})</span>
+                        <span className="font-medium">{name} (₱{price})</span>
                         <input
                           type="checkbox"
-                          checked={checked}
+                          checked={selected}
                           onChange={() => toggleDocument(doctype_id)}
                           className="form-checkbox text-blue-600"
                         />
                       </label>
 
-                      {checked && (
+                      {selected && (
                         <div className="pl-4 border-l-2 border-blue-200 flex flex-col space-y-2">
-
-                          {/* Purpose Dropdown */}
+                          {/* Purpose */}
                           <select
                             value={selectedDocuments[doctype_id].purpose}
-                            onChange={(e) => handlePurposeChange(doctype_id, e.target.value)}
-                            required
-                            className="border rounded px-2 py-1"
+                            onChange={(e) =>
+                              handlePurposeChange(doctype_id, e.target.value)
+                            }
+                            className={`border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-600 transition ${
+                              errors[doctype_id]
+                                ? "border-red-600 bg-red-50"
+                                : "border-gray-300 bg-white"
+                            }`}
                           >
                             <option value="">Select Purpose</option>
                             {purposes.map((p) => (
@@ -157,12 +185,19 @@ export default function RequestDocumentStep2() {
                               </option>
                             ))}
                           </select>
+                          {errors[doctype_id] && (
+                            <p className="text-red-600 text-xs mt-1">
+                              {errors[doctype_id]}
+                            </p>
+                          )}
 
-                          {/* Copies Dropdown */}
+                          {/* Copies */}
                           <select
                             value={selectedDocuments[doctype_id].copies}
-                            onChange={(e) => handleCopiesChange(doctype_id, e.target.value)}
-                            className="border rounded px-2 py-1"
+                            onChange={(e) =>
+                              handleCopiesChange(doctype_id, e.target.value)
+                            }
+                            className="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
                           >
                             {copyOptions.map((n) => (
                               <option key={n} value={n}>
@@ -170,7 +205,6 @@ export default function RequestDocumentStep2() {
                               </option>
                             ))}
                           </select>
-
                         </div>
                       )}
                     </div>
@@ -180,33 +214,34 @@ export default function RequestDocumentStep2() {
 
               {/* Notes */}
               <div>
-                <label className="block mb-1">Notes / Remarks (Optional)</label>
+                <label className="block mb-1 text-gray-900 font-medium">
+                  Notes / Remarks (Optional)
+                </label>
                 <textarea
                   rows={3}
                   placeholder="Any special instructions..."
                   value={notes}
                   onChange={handleNotesChange}
-                  className="w-full border rounded p-2"
+                  className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
                 />
               </div>
 
-             {/* Buttons */}
-<div className="flex gap-2">
-  <button
-    type="button"
-    onClick={handleBack}
-    className="flex-1 px-4 py-3 border border-blue-800 text-blue-800 rounded font-semibold"
-  >
-    Back
-  </button>
-  <button
-    type="submit"
-    className="flex-1 px-4 py-3 bg-yellow-600 text-white rounded font-semibold"
-  >
-    Next: Review
-  </button>
-</div>
-
+              {/* Buttons */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="flex-1 px-4 py-3 border border-blue-800 text-blue-800 rounded font-semibold hover:bg-[#2c3e9e] hover:text-white transition"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-3 bg-[#C5A93D] hover:bg-yellow-600 text-white rounded font-semibold transition"
+                >
+                  Next: Review
+                </button>
+              </div>
             </form>
           </div>
         </main>

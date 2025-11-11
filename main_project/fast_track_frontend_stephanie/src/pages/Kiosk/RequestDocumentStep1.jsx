@@ -28,7 +28,8 @@ export default function RequestDocumentStep1() {
   const [documentTypes, setDocumentTypes] = useState([]);
   const [purposes, setPurposes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({}); // Field-level validation errors
+  const [submitError, setSubmitError] = useState("");
 
   // Fetch document types and purposes from backend
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function RequestDocumentStep1() {
         if (res.data.purposes) setPurposes(res.data.purposes);
       } catch (err) {
         console.error(err);
-        setError("Unable to load document types or purposes. Please check your API.");
+        setSubmitError("Unable to load document types or purposes. Please check your API.");
       }
     };
     fetchData();
@@ -52,11 +53,15 @@ export default function RequestDocumentStep1() {
       ...prev,
       [name]: name === "documentType" || name === "purpose" ? Number(value) : value,
     }));
+
+    // Clear field-level error on change
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   // Handle relationship radio button
   const handleRelationshipChange = (e) => {
     setFormData((prev) => ({ ...prev, relationship: e.target.value }));
+    setErrors((prev) => ({ ...prev, relationship: "" }));
   };
 
   // Increment/Decrement copies
@@ -67,10 +72,36 @@ export default function RequestDocumentStep1() {
   // Navigate back
   const handleBack = () => navigate("/KioskServicesMenu");
 
+  // Validation function
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required.";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required.";
+    if (!formData.studentId.trim()) newErrors.studentId = "Student ID is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email))
+      newErrors.email = "Invalid email address.";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required.";
+    else if (!/^\d{4}-\d{3}-\d{3}$/.test(formData.phone))
+      newErrors.phone = "Phone number must be in XXXX-XXX-XXX format.";
+    if (!formData.relationship) newErrors.relationship = "Please select your relationship to AUF.";
+
+    if (!formData.documentType) newErrors.documentType = "Please select a document type.";
+    if (!formData.purpose) newErrors.purpose = "Please select a purpose for your request.";
+    if (formData.copies < 1) newErrors.copies = "At least one copy is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setSubmitError("");
+
+    if (!validate()) return; // Stop if validation fails
+
     setLoading(true);
 
     try {
@@ -103,10 +134,10 @@ export default function RequestDocumentStep1() {
       navigate("/SuccessMessage");
     } catch (err) {
       console.error(err);
-      setError(
+      setSubmitError(
         err.response?.data?.error ||
-          JSON.stringify(err.response?.data) ||
-          "Failed to submit request."
+        JSON.stringify(err.response?.data) ||
+        "Failed to submit request."
       );
     } finally {
       setLoading(false);
@@ -155,8 +186,8 @@ export default function RequestDocumentStep1() {
               ))}
             </div>
 
-            {/* Error message */}
-            {error && <p className="text-red-600 mb-4">{error}</p>}
+            {/* Global error */}
+            {submitError && <p className="text-red-600 mb-4">{submitError}</p>}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -174,9 +205,13 @@ export default function RequestDocumentStep1() {
                     placeholder="Enter your first name"
                     value={formData.firstName}
                     onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+                      errors.firstName
+                        ? "border-red-600 ring-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50 focus:ring-blue-600"
+                    }`}
                   />
+                  {errors.firstName && <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
                 </div>
 
                 {/* Middle Name */}
@@ -207,9 +242,13 @@ export default function RequestDocumentStep1() {
                     placeholder="Enter your last name"
                     value={formData.lastName}
                     onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+                      errors.lastName
+                        ? "border-red-600 ring-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50 focus:ring-blue-600"
+                    }`}
                   />
+                  {errors.lastName && <p className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
                 </div>
 
                 {/* Student ID */}
@@ -224,9 +263,13 @@ export default function RequestDocumentStep1() {
                     placeholder="e.g., 23-1774-384"
                     value={formData.studentId}
                     onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+                      errors.studentId
+                        ? "border-red-600 ring-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50 focus:ring-blue-600"
+                    }`}
                   />
+                  {errors.studentId && <p className="text-red-600 text-xs mt-1">{errors.studentId}</p>}
                 </div>
 
                 {/* Email */}
@@ -241,9 +284,13 @@ export default function RequestDocumentStep1() {
                     placeholder="example@gmail.com"
                     value={formData.email}
                     onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+                      errors.email
+                        ? "border-red-600 ring-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50 focus:ring-blue-600"
+                    }`}
                   />
+                  {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
                 </div>
 
                 {/* Phone */}
@@ -258,57 +305,45 @@ export default function RequestDocumentStep1() {
                     placeholder="XXXX-XXX-XXX"
                     value={formData.phone}
                     onChange={handleChange}
-                    required
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+                    className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+                      errors.phone
+                        ? "border-red-600 ring-red-500 bg-red-50"
+                        : "border-gray-300 bg-gray-50 focus:ring-blue-600"
+                    }`}
                   />
+                  {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
                 </div>
 
-                {/* Relationship to AUF */}
+                {/* Relationship */}
                 <div className="col-span-2">
                   <fieldset>
                     <legend className="text-sm font-semibold text-gray-900 mb-2">
                       Relationship to AUF <span className="text-red-600">*</span>
                     </legend>
-
                     <div className="flex flex-col space-y-2">
-                      <label className="flex items-center space-x-2 text-gray-700 text-sm">
-                        <input
-                          type="radio"
-                          name="relationship"
-                          value="current"
-                          checked={formData.relationship === "current"}
-                          onChange={handleRelationshipChange}
-                          required
-                          className="form-radio text-blue-600"
-                        />
-                        <span>Current Student</span>
-                      </label>
-
-                      <label className="flex items-center space-x-2 text-gray-700 text-sm">
-                        <input
-                          type="radio"
-                          name="relationship"
-                          value="alumni"
-                          checked={formData.relationship === "alumni"}
-                          onChange={handleRelationshipChange}
-                          className="form-radio text-blue-600"
-                        />
-                        <span>Alumni/Inactive Student</span>
-                      </label>
-
-                      <label className="flex items-center space-x-2 text-gray-700 text-sm">
-                        <input
-                          type="radio"
-                          name="relationship"
-                          value="representative"
-                          checked={formData.relationship === "representative"}
-                          onChange={handleRelationshipChange}
-                          className="form-radio text-blue-600"
-                        />
-                        <span>Representative</span>
-                      </label>
+                      {["current", "alumni", "representative"].map((val) => (
+                        <label key={val} className="flex items-center space-x-2 text-gray-700 text-sm">
+                          <input
+                            type="radio"
+                            name="relationship"
+                            value={val}
+                            checked={formData.relationship === val}
+                            onChange={handleRelationshipChange}
+                            className="form-radio text-blue-600"
+                          />
+                          <span>
+                            {val === "current"
+                              ? "Current Student"
+                              : val === "alumni"
+                              ? "Alumni/Inactive Student"
+                              : "Representative"}
+                          </span>
+                        </label>
+                      ))}
                     </div>
-
+                    {errors.relationship && (
+                      <p className="text-red-600 text-xs mt-1">{errors.relationship}</p>
+                    )}
                     {formData.relationship === "representative" && (
                       <p className="mt-3 rounded-md border border-gray-300 bg-gray-100 py-2 px-3 text-gray-700 text-xs">
                         Authorization letter and student's valid ID required for pickup
@@ -316,7 +351,6 @@ export default function RequestDocumentStep1() {
                     )}
                   </fieldset>
                 </div>
-
               </fieldset>
 
               {/* Submit Button */}
