@@ -82,9 +82,13 @@ const KioskServicesMenu = () => {
               <button
                 key={idx}
                 onClick={() => {
+                setTimeout(() => {
+
                   if (title === "REQUEST DOCUMENT") navigate("/RequestDocumentStep1");
                   else if (title === "SCAN QR TO CHECK STATUS") navigate("/CheckRequestStatus");
                   else if (title === "REGISTRAR INFO & HELP") navigate("/RegistrarInfo");
+                }, 600); 
+
                 }}
                 className="flex items-center gap-6 w-full rounded-xl px-8 py-6 cursor-pointer
                   bg-gray-100 hover:bg-blue-50 hover:border hover:border-blue-800

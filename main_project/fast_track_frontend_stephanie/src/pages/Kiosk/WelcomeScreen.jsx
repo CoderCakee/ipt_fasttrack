@@ -7,8 +7,10 @@ const WelcomeScreen = () => {
   const navigate = useNavigate();
 
   const handleStartClick = () => {
-    navigate("/KioskServicesMenu"); // Navigate to the services menu
-  };
+    setTimeout(() => {
+    navigate("/KioskServicesMenu");
+  }, 700); // 0.7s delay for smoothness
+};
 
   return (
     // Full-screen container with vertical layout
