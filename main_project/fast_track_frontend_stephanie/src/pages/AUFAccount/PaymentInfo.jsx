@@ -36,7 +36,7 @@ const PaymentInfo = () => {
       </div>
 
       {/* Scrollable content with hidden scrollbar */}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-24 pb-6 h-screen overflow-y-auto hide-scrollbar">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-20 pb-6 h-screen overflow-y-auto hide-scrollbar">
 
         {/* White container */}
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-10">

@@ -16,7 +16,7 @@ const StatusTag = ({ status }) => {
 
   return (
     <span
-      className={`${style} px-2 py-1 text-xs rounded-md font-semibold whitespace-nowrap`}
+      className={`${style} px-3 py-1 text-xs rounded-full font-semibold whitespace-nowrap shadow-sm`}
     >
       {status}
     </span>
@@ -25,50 +25,53 @@ const StatusTag = ({ status }) => {
 
 // Individual request card with Notify button
 const RequestCard = ({ requestNumber, requesterName, documents, status, onView, onNotify }) => (
-  <div className="border border-gray-300 rounded-md p-4 mb-4 flex justify-between items-start">
-    <div>
-      <p className="text-blue-700 font-semibold mb-1">{requestNumber}</p>
-      <p className="text-gray-800 mb-2">{requesterName}</p>
-      <p className="text-xs text-gray-500 font-semibold mb-1">Documents</p>
-      <p className="text-gray-700 text-sm">{documents}</p>
-    </div>
+  <div className="bg-white border border-gray-200 rounded-lg p-6 mb-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+    <div className="flex justify-between items-start">
+      <div className="flex-1">
+        <p className="text-blue-700 font-semibold text-lg mb-1">{requestNumber}</p>
+        <p className="text-gray-800 mb-2">{requesterName}</p>
+        <p className="text-xs text-gray-500 font-semibold mb-1">Documents</p>
+        <p className="text-gray-700 text-sm">{documents}</p>
+      </div>
 
-    <div className="flex flex-col items-end space-y-2">
-      <StatusTag status={status} />
-      <button
-        onClick={onView}
-        className="border border-gray-400 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-100 transition"
-        aria-label={`View details for ${requestNumber}`}
-      >
-        {/* Eye icon */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="inline-block w-5 h-5 mr-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-        View
-      </button>
-      <button
-        onClick={onNotify}
-        className="border border-blue-600 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition"
-        aria-label={`Notify for ${requestNumber}`}
-      >
-        Notify
-      </button>
+      <div className="flex flex-col items-end space-y-3 ml-4">
+        <StatusTag status={status} />
+        <div className="flex space-x-2">
+          <button
+            onClick={onView}
+            className="flex items-center gap-1 border border-gray-400 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-100 transition"
+            aria-label={`View details for ${requestNumber}`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            View
+          </button>
+          <button
+            onClick={onNotify}
+            className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition"
+            aria-label={`Notify for ${requestNumber}`}
+          >
+            Notify
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -145,15 +148,15 @@ const RequestManagement = () => {
   return (
     <AdminLayout>
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-8">
         <h1 className="text-2xl font-bold text-blue-900 mb-1">Request Management</h1>
-        <p className="text-gray-700 text-sm">Manage and track document requests</p>
+        <p className="text-gray-700 text-base">Manage and track document requests</p>
       </div>
 
       {/* Search and filter */}
       <form
         onSubmit={(e) => e.preventDefault()}
-        className="flex flex-col md:flex-row items-center gap-4 mb-6"
+        className="flex flex-col md:flex-row items-center gap-4 mb-8 bg-gray-50 p-4 rounded-lg shadow-sm"
       >
         <div className="relative flex-grow w-full md:w-auto">
           <input
@@ -161,7 +164,7 @@ const RequestManagement = () => {
             placeholder="Search by name, ID, or request number..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full border border-gray-300 rounded-md pl-4 pr-20 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full border border-gray-300 rounded-md pl-4 pr-20 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
           />
 
           <button
@@ -179,7 +182,7 @@ const RequestManagement = () => {
         <select
           value={statusFilter}
           onChange={handleStatusChange}
-          className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
         >
           <option>All Statuses</option>
           <option>Processing</option>
@@ -189,27 +192,30 @@ const RequestManagement = () => {
       </form>
 
       {/* Requests List */}
-      <section className="border border-gray-300 rounded-md p-6 space-y-4">
+      <section className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Requests</h2>
         {filteredRequests.length === 0 ? (
-          <p className="text-gray-600 italic">No matching requests found.</p>
+          <p className="text-gray-600 italic text-center py-8">No matching requests found.</p>
         ) : (
-          filteredRequests.map((req) => (
-            <RequestCard
-              key={req.id}
-              requestNumber={req.requestNumber}
-              requesterName={req.requesterName}
-              documents={req.requested_documents.map((d) => d.name).join(", ")}
-              status={req.status}
-              onView={() => handleViewClick(req)}
-              onNotify={() => handleNotify(req)}
-            />
-          ))
+          <div className="space-y-4">
+            {filteredRequests.map((req) => (
+              <RequestCard
+                key={req.id}
+                requestNumber={req.requestNumber}
+                requesterName={req.requesterName}
+                documents={req.requested_documents.map((d) => d.name).join(", ")}
+                status={req.status}
+                onView={() => handleViewClick(req)}
+                onNotify={() => handleNotify(req)}
+              />
+            ))}
+          </div>
         )}
       </section>
 
       {/* Modal for ViewRequestDetails */}
       {selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <ViewRequestDetails
             request={selectedRequest}
             onMarkProcessing={(id) => console.log("Mark Processing:", id)}

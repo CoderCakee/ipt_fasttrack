@@ -78,15 +78,30 @@ const SingleDocumentReceipt = ({
       </div>
 
       {/* Fixed Header */}
-      <div className="relative z-20 header">
+      <div className="fixed top-0 left-0 right-0 z-20">
         <KioskHeader />
       </div>
 
       {/* Scrollable Content */}
-        <main className="relative z-20 flex-grow overflow-y-auto px-6 pt-28 pb-6">
+      <div 
+        className="flex-1 overflow-y-auto pt-24" 
+        style={{
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none', // IE/Edge
+        }}
+      >
+        <style>
+          {`
+            .scrollable-content::-webkit-scrollbar {
+              display: none; // Chrome, Safari, Opera
+            }
+          `}
+        </style>
+
+        <main className="relative z-20 flex-grow px-6 pb-6">
         <div 
         id="receipt-content"
-        className="bg-white rounded-2xl shadow-xl max-w-xl w-full mx-auto p-6 text-[#2c3e9e] space-y-4">
+        className="bg-white rounded-2xl shadow-xl max-w-xl w-full mx-auto p-6 mt-4 text-[#2c3e9e] space-y-4 mb-20">
           {/* Title */}
           <div className="text-center">
             <h2 className="text-blue-900 font-bold text-xl tracking-wide select-none">
@@ -203,6 +218,7 @@ const SingleDocumentReceipt = ({
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 };
