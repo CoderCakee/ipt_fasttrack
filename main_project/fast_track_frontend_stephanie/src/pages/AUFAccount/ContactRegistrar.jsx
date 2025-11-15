@@ -209,16 +209,41 @@ const ContactRegistrar = () => {
               </p>
             </section>
 
-            {/* Location Section */}
-            <section className="bg-white rounded-xl shadow p-6 border border-gray-300 text-center text-gray-600 text-xs">
-              <h2 className="font-semibold mb-2 text-blue-900">How to Find Us</h2>
-              <div className="w-full h-48 bg-gray-200 rounded-md mb-3 flex items-center justify-center text-gray-400 select-none">
-                Map placeholder
-              </div>
-              <p>
-                The Registrar&apos;s Office is located on the 2nd floor of the AUF Main Building, easily accessible from the main entrance. Look for the signage or ask the Information Desk for directions.
-              </p>
-            </section>
+           <section className="bg-white rounded-xl shadow p-6 border border-gray-300 text-center text-gray-600 text-xs">
+  <h2 className="font-semibold mb-3 text-blue-900 text-sm">How to Find Us</h2>
+
+  {/* Responsive Map Container */}
+  <div className="w-full h-56 sm:h-72 rounded-lg overflow-hidden shadow">
+    <iframe
+      title="AUF Location Map"
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3851.240503953224!2d120.59206397434112!3d15.14513096351476!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3396f2402dee0d49%3A0x6ccb1574d15b576d!2sAngeles%20University%20Foundation!5e0!3m2!1sen!2sph!4v1763202993944!5m2!1sen!2sph"
+      width="100%"
+      height="100%"
+      style={{ border: 0 }}
+      allowFullScreen
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    ></iframe>
+  </div>
+
+  {/* Google Maps App Link */}
+  <a
+    href="https://maps.app.goo.gl/x8sVhyQQMdtmDjrk9"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="block mt-3 text-blue-700 underline hover:text-blue-900"
+  >
+    Open in Google Maps →
+  </a>
+
+  <p className="mt-3 leading-relaxed">
+    The Registrar's Office is located on the 2nd floor of the AUF Main Building,
+    easily accessible from the main entrance. Look for the signage or ask the
+    Information Desk for assistance.
+  </p>
+</section>
+
+
 
           </div> {/* End of white container */}
         </div> {/* End of min-h-screen wrapper */}

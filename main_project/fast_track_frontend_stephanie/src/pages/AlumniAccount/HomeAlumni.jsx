@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
-  CurrencyDollarIcon,
   InformationCircleIcon,
   PhoneIcon,
+  CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
 import KioskHeader from "../../components/KioskHeader";
@@ -17,25 +17,25 @@ const HomeAlumni = () => {
     {
       title: "Request a Document",
       subtitle: "TOR, Diploma, Grades, and more",
-      icon: <DocumentTextIcon className="w-10 h-10 text-blue-700" />,
+      icon: <DocumentTextIcon />,
       path: "/RequestDocumentStep1",
     },
     {
       title: "Check Request Status",
       subtitle: "Track your document request",
-      icon: <MagnifyingGlassIcon className="w-10 h-10 text-blue-700" />,
+      icon: <MagnifyingGlassIcon />,
       path: "/CheckStatusAlumni",
     },
     {
       title: "Payment Guidelines",
       subtitle: "How to pay for your request",
-      icon: <CurrencyDollarIcon className="w-10 h-10 text-blue-700" />,
+      icon: <CreditCardIcon />,
       path: "/PaymentInfo",
     },
     {
       title: "Registrar Information",
       subtitle: "Office hours, location & guidelines",
-      icon: <InformationCircleIcon className="w-10 h-10 text-blue-700" />,
+      icon: <InformationCircleIcon />,
       path: "/RegistrarInfo",
     },
   ];
@@ -69,32 +69,44 @@ const HomeAlumni = () => {
             </p>
           </section>
 
-          {/* Services Grid */}
+          {/* Services Grid with hover effect */}
           <section className="grid grid-cols-2 sm:grid-cols-2 gap-4">
             {services.map(({ title, subtitle, icon, path }) => (
               <button
                 key={title}
                 onClick={() => navigate(path)}
-                className="flex flex-col items-center justify-center border border-gray-300 rounded-xl p-5 bg-white shadow-sm hover:shadow-md hover:bg-blue-50 transition cursor-pointer text-center"
+                className="group flex flex-col items-center justify-center border border-gray-300 rounded-xl p-5 bg-white shadow-sm 
+                           hover:bg-blue-700 hover:border-blue-800 hover:shadow-md transform hover:-translate-y-1 transition-all cursor-pointer text-center"
                 aria-label={`Go to ${title}`}
               >
-                <div className="mb-2">{icon}</div>
-                <h2 className="text-base font-semibold text-blue-900">{title}</h2>
-                <p className="text-xs text-gray-600 mt-1">{subtitle}</p>
+                {/* Icon */}
+                <div className="mb-2 w-10 h-10 text-blue-700 transition group-hover:text-white flex items-center justify-center">
+                  {React.cloneElement(icon, { className: "w-10 h-10 stroke-current" })}
+                </div>
+
+                {/* Title */}
+                <h2 className="text-base font-semibold text-blue-900 transition group-hover:text-white">
+                  {title}
+                </h2>
+
+                {/* Subtitle */}
+                <p className="text-xs text-gray-600 mt-1 transition group-hover:text-white">
+                  {subtitle}
+                </p>
               </button>
             ))}
           </section>
 
-           <button
-              type="button"
-              className="mt-6 flex items-center gap-2 w-full border border-gray-300 rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-50 transition cursor-pointer"
-              onClick={() => navigate("/ContactRegistrar")}
-              aria-label="Contact Registrar"
-            >
-              <PhoneIcon className="w-5 h-5" />
-              Contact Registrar
-            </button>
-
+          {/* Contact Registrar Button */}
+          <button
+            type="button"
+            className="mt-6 flex items-center gap-2 w-full border border-gray-300 rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+            onClick={() => navigate("/ContactRegistrar")}
+            aria-label="Contact Registrar"
+          >
+            <PhoneIcon className="w-5 h-5" />
+            Contact Registrar
+          </button>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 import { useNavigate } from "react-router-dom";
 
+// Mock request data
 const mockRequest = {
   requestNumber: "1728901234567",
   submittedDate: "Nov 8, 2025",
@@ -70,7 +71,7 @@ const ViewDetails = () => {
         <div className="min-h-screen flex flex-col justify-start">
           {/* White content container */}
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 bg-white rounded-2xl shadow-lg mt-10 mb-10">
-            
+
             {/* Back Button */}
             <button
               type="button"
@@ -100,12 +101,13 @@ const ViewDetails = () => {
               </p>
               <p className="text-sm text-gray-700 mb-3">
                 <strong>Documents:</strong>{" "}
-                {mockRequest.documents
-                  .map((d) => `${d.name} (${d.copies})`)
-                  .join(", ")}
+                {mockRequest.documents.map((d) => `${d.name} (${d.copies})`).join(", ")}
               </p>
-              <div className="bg-blue-800 text-white rounded-md py-3 px-4 text-center text-2xl font-bold">
-                ₱{mockRequest.totalAmount}
+
+              {/* Total Amount */}
+              <div className="flex justify-between items-center mt-3 bg-blue-800 text-white rounded-md py-3 px-4">
+                <span className="text-sm font-semibold">Total Amount</span>
+                <span className="text-2xl font-bold">₱{mockRequest.totalAmount}</span>
               </div>
             </section>
 
@@ -117,6 +119,7 @@ const ViewDetails = () => {
               <ol className="space-y-5">
                 {mockRequest.statusSteps.map((step, i) => (
                   <li key={step.id} className="flex items-start gap-3">
+                    {/* Step Icon */}
                     <span
                       className={`flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-full border-2 ${
                         step.complete
@@ -134,12 +137,12 @@ const ViewDetails = () => {
                         i + 1
                       )}
                     </span>
+
+                    {/* Step Info */}
                     <div>
                       <h4
                         className={`font-semibold ${
-                          step.complete || step.current
-                            ? "text-gray-900"
-                            : "text-gray-400"
+                          step.complete || step.current ? "text-gray-900" : "text-gray-400"
                         }`}
                       >
                         {step.label}
@@ -149,9 +152,7 @@ const ViewDetails = () => {
                           </span>
                         )}
                       </h4>
-                      <p className="text-sm text-gray-600">
-                        {step.description}
-                      </p>
+                      <p className="text-sm text-gray-600">{step.description}</p>
                     </div>
                   </li>
                 ))}
@@ -161,12 +162,10 @@ const ViewDetails = () => {
             {/* Estimated Completion */}
             <section className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8 text-blue-900 text-sm shadow-sm">
               <p>
-                <strong>Estimated completion:</strong>{" "}
-                {mockRequest.estimatedCompletion}
+                <strong>Estimated completion:</strong> {mockRequest.estimatedCompletion}
               </p>
               <p className="mt-1">
-                Documents are currently being processed. You will be notified
-                once they are ready for pickup.
+                Documents are currently being processed. You will be notified once they are ready for pickup.
               </p>
             </section>
 
@@ -175,16 +174,9 @@ const ViewDetails = () => {
               <h2 className="text-lg font-semibold text-blue-900 mb-3">
                 Pickup Information
               </h2>
-              <p>
-                <strong>Location:</strong> {mockRequest.pickupInfo.location}
-              </p>
-              <p>
-                <strong>Hours:</strong> {mockRequest.pickupInfo.hours}
-              </p>
-              <p>
-                <strong>Requirements:</strong>{" "}
-                {mockRequest.pickupInfo.requirements}
-              </p>
+              <p><strong>Location:</strong> {mockRequest.pickupInfo.location}</p>
+              <p><strong>Hours:</strong> {mockRequest.pickupInfo.hours}</p>
+              <p><strong>Requirements:</strong> {mockRequest.pickupInfo.requirements}</p>
             </section>
 
           </div>

@@ -23,6 +23,39 @@ const SingleDocumentReceipt = ({
     }, 700);
   };
 
+  const downloadPDF = async () => {
+  const jsPDF = (await import("jspdf")).default;
+  const html2canvas = (await import("html2canvas")).default;
+
+  const receiptElement = document.getElementById("receipt-content");
+  const buttons = document.getElementById("receipt-buttons");
+
+  // Hide the buttons before capture
+  if (buttons) buttons.style.display = "none";
+
+  // Wait a tiny bit for UI update
+  await new Promise((resolve) => setTimeout(resolve, 150));
+
+  // Generate canvas
+  const canvas = await html2canvas(receiptElement, {
+    scale: 2,
+    useCORS: true,
+  });
+
+  // Restore button visibility
+  if (buttons) buttons.style.display = "flex";
+
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+  pdf.save(`${requestNumber}.pdf`);
+};
+
+
   return (
     <div className="relative min-h-screen flex flex-col bg-[#2C3E9E] font-serif">
       {/* Print Styles */}
@@ -50,8 +83,10 @@ const SingleDocumentReceipt = ({
       </div>
 
       {/* Scrollable Content */}
-      <main className="relative z-20 flex-grow overflow-y-auto px-6 py-6">
-        <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full mx-auto p-6 text-[#2c3e9e] space-y-4">
+        <main className="relative z-20 flex-grow overflow-y-auto px-6 pt-28 pb-6">
+        <div 
+        id="receipt-content"
+        className="bg-white rounded-2xl shadow-xl max-w-xl w-full mx-auto p-6 text-[#2c3e9e] space-y-4">
           {/* Title */}
           <div className="text-center">
             <h2 className="text-blue-900 font-bold text-xl tracking-wide select-none">
@@ -143,7 +178,7 @@ const SingleDocumentReceipt = ({
           </p>
 
           {/* Buttons (hidden on print) */}
-          <div className="flex flex-col gap-2 pt-1 no-print">
+          <div id="receipt-buttons" className="flex flex-col gap-2 pt-1 no-print">
             <div className="flex gap-2">
               <button
                 onClick={() => window.print()}
@@ -152,7 +187,7 @@ const SingleDocumentReceipt = ({
                 Print
               </button>
               <button
-                onClick={() => alert('Download PDF functionality goes here')}
+                onClick={downloadPDF}
                 className="flex-1 px-4 py-2 border border-blue-900 text-blue-800 rounded-lg font-semibold hover:bg-blue-50 transition text-sm"
               >
                 Download PDF

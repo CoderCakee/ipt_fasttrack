@@ -69,7 +69,7 @@ export default function LoginForm() {
             <h2 className="font-semibold text-xl text-center text-[#2C3E9E] mb-2">
               Student Login
             </h2>
-            <p className="text-gray-600 text-sm mb-8">
+            <p className="text-center text-gray-600 text-sm mb-8">
               Enter your AUF credentials to access your account.
             </p>
 

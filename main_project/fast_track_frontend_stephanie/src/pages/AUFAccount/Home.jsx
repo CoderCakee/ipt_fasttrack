@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DocumentTextIcon,
-  MagnifyingGlassIcon,
+  UserIcon,
   CreditCardIcon,
   ClockIcon,
   BookOpenIcon,
@@ -93,17 +93,28 @@ const Home = ({
               { icon: <DocumentTextIcon className="w-12 h-12 text-blue-700" />, label: "Request Document", onClick: () => navigate("/RequestDocumentStep1") },
               { icon: <CreditCardIcon className="w-12 h-12 text-blue-700" />, label: "Payment Info", onClick: () => navigate("/PaymentInfo") },
               { icon: <ClockIcon className="w-12 h-12 text-blue-700" />, label: "My History", onClick: () => navigate("/RequestHistory") },
-              { icon: <MagnifyingGlassIcon className="w-12 h-12 text-blue-700" />, label: "My Profile", onClick: () => navigate("/MyProfile") },
+              { icon: <UserIcon className="w-12 h-12 text-blue-700" />, label: "My Profile", onClick: () => navigate("/MyProfile") },
             ].map(({ icon, label, onClick }) => (
               <button
-                key={label}
-                onClick={onClick}
-                className="flex flex-col items-center justify-center border border-gray-300 rounded-xl p-3 sm:p-4 bg-white shadow-sm hover:shadow-md transition cursor-pointer"
-                aria-label={label}
-              >
-                {icon}
-                <span className="mt-1 text-sm font-semibold text-gray-700">{label}</span>
-              </button>
+  key={label}
+  onClick={onClick}
+  className="group flex flex-col items-center justify-center border border-gray-300 rounded-xl 
+             p-3 sm:p-4 bg-white shadow-sm transition cursor-pointer
+             hover:bg-blue-700 hover:border-blue-800 hover:shadow-md"
+  aria-label={label}
+>
+  {/* Icon wrapper */}
+  <div className="w-12 h-12 text-blue-700 transition group-hover:text-white flex items-center justify-center">
+    {React.cloneElement(icon, { className: "w-12 h-12 stroke-current" })}
+  </div>
+  
+  {/* Label */}
+  <span className="mt-1 text-sm font-semibold text-gray-700 transition group-hover:text-white">
+    {label}
+  </span>
+</button>
+
+
             ))}
           </section>
 

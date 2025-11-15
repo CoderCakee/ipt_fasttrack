@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { EyeIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, ArrowPathIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
 import KioskHeader from "../../components/KioskHeader";
 
@@ -60,7 +60,7 @@ const RequestHistory = () => {
             onClick={() => navigate(-1)}
             className="inline-flex items-center space-x-2 text-blue-700 hover:text-blue-900 font-semibold mb-6"
           >
-            <ArrowPathIcon className="w-5 h-5 rotate-180" />
+            <ArrowRightIcon className="w-5 h-5 rotate-180" />
             <span>Back</span>
           </button>
 
@@ -100,13 +100,6 @@ const RequestHistory = () => {
                   >
                     <EyeIcon className="w-4 h-4" />
                     View Details
-                  </button>
-                  <button
-                    onClick={() => handleReRequest(requestNumber)}
-                    className="flex items-center gap-1 border border-gray-300 rounded px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
-                  >
-                    <ArrowPathIcon className="w-4 h-4" />
-                    Re-request
                   </button>
                 </footer>
               </li>
