@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 
 export default function RequestDocumentStep2() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Receive student data from Step 1
+  const { studentData } = location.state || {};
+  
+  // Redirect back if no studentData (optional safety)
+  if (!studentData) {
+    navigate("/RequestDocumentStep1");
+  }
 
   // Mock data (replace with API if needed)
   const documentTypes = [
@@ -73,7 +82,7 @@ export default function RequestDocumentStep2() {
       return;
     }
 
-    // ✅ Build enriched payload for next step (includes name, price, and purpose description)
+    // Build payload for Step 3
     const payload = Object.keys(selectedDocuments).map((id) => {
       const docType = documentTypes.find((d) => d.doctype_id === Number(id));
       const purpose = purposes.find(
@@ -89,11 +98,10 @@ export default function RequestDocumentStep2() {
       };
     });
 
-    console.log("Submission Payload:", payload, "Notes:", notes);
-
-    // ✅ Navigate to Step 3 with complete document data
+    // Navigate to Step 3 with studentData + documents + notes
     navigate("/RequestDocumentStep3", {
       state: {
+        studentData,
         documents: payload,
         notes,
       },
@@ -124,7 +132,7 @@ export default function RequestDocumentStep2() {
             </div>
 
             {/* Progress Tracker */}
-            <div className="flex justify-center items-center space-x-6 mb-10 w-2/3 max-w-sm mx-auto">
+            <div className="flex justify-center items-center space-x-6 mb-6 w-2/3 max-w-sm mx-auto">
               {[1, 2, 3].map((step) => (
                 <React.Fragment key={step}>
                   <div
@@ -138,6 +146,25 @@ export default function RequestDocumentStep2() {
                 </React.Fragment>
               ))}
             </div>
+
+            {/* Student Info Summary */}
+            {studentData && (
+              <div className="mb-6 p-4 bg-gray-100 rounded border">
+                <p>
+                  <strong>Name:</strong> {studentData.firstName}{" "}
+                  {studentData.middleName} {studentData.lastName}
+                </p>
+                <p>
+                  <strong>Student ID:</strong> {studentData.studentId}
+                </p>
+                <p>
+                  <strong>Email:</strong> {studentData.email}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {studentData.phone}
+                </p>
+              </div>
+            )}
 
             {/* Global Error */}
             {errors.documents && (

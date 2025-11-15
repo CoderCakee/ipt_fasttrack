@@ -10,6 +10,8 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
+import KioskHeader from "../../components/KioskHeader";
+
 
 const MyProfile = () => {
   const navigate = useNavigate();
@@ -41,6 +43,7 @@ const MyProfile = () => {
     <div className="relative min-h-screen font-sans text-gray-800 bg-[#2C3E9E] py-12">
       {/* Kiosk-style background like PaymentInfo */}
       <KioskBackground opacity={15} blueOpacity={80} />
+      <KioskHeader />
 
       {/* Main container */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-8 py-8 bg-white rounded-2xl shadow-lg space-y-6">

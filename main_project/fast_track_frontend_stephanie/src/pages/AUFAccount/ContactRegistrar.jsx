@@ -57,7 +57,7 @@ const ContactRegistrar = () => {
             {/* Back Button */}
             <button
               type="button"
-              onClick={() => navigate("/Home")}
+              onClick={() => navigate(-1)}
               className="inline-flex items-center gap-2 text-blue-800 hover:text-blue-600 font-semibold mb-6"
               aria-label="Go back"
             >

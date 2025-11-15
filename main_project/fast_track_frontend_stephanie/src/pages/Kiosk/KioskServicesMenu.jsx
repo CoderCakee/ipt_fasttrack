@@ -77,7 +77,7 @@ const KioskServicesMenu = () => {
           </div>
 
           {/* Services Grid */}
-          <div className="mt-6 flex-1 flex flex-col space-y-6">
+          <div className="mt-10 flex-1 flex flex-col space-y-6">
             {services.map(({ title, description, icon }, idx) => (
               <button
                 key={idx}
@@ -90,7 +90,7 @@ const KioskServicesMenu = () => {
                 }, 600); 
 
                 }}
-                className="flex items-center gap-6 w-full rounded-xl px-8 py-6 cursor-pointer
+                className="flex items-center gap-8 w-full rounded-xl px-12 py-8 cursor-pointer
                   bg-gray-100 hover:bg-blue-50 hover:border hover:border-blue-800
                   transition-all shadow-sm hover:shadow-md"
               >
@@ -103,15 +103,6 @@ const KioskServicesMenu = () => {
                 </div>
               </button>
             ))}
-
-            <button
-              onClick={() => navigate("/LoginForm")}
-              className="flex items-center justify-center w-full rounded-xl px-8 py-6 cursor-pointer
-                bg-blue-900 text-white font-bold uppercase text-lg tracking-widest 
-                hover:bg-blue-800 transition-shadow shadow-md hover:shadow-lg mt-auto"
-            >
-              Login with AUF Account
-            </button>
           </div>
         </div>
       </div>

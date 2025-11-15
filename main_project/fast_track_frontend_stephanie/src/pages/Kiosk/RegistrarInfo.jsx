@@ -31,7 +31,7 @@ const RegistrarInfo = () => {
 
         {/* Main Content */}
         <main className="flex-grow flex justify-center items-start px-4 sm:px-6 py-10 mt-10">
-          <div className="bg-white border-2 border-yellow-400 rounded-lg shadow-2xl max-w-3xl w-full p-6 pt-6">
+          <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-6 pt-6">
             
             {/* Back Button */}
             <button
@@ -67,7 +67,7 @@ const RegistrarInfo = () => {
             </p>
 
             {/* Location & Contact Info */}
-            <section className="bg-gray-50 rounded-md border border-gray-200 p-5 shadow-sm mb-6 space-y-4">
+            <section className="bg-gray-50 rounded-md border -gray-200 p-5 shadow-sm mb-6 space-y-4">
               <div className="flex items-start space-x-3">
                 <BuildingLibraryIcon className="h-6 w-6 text-[#2C3E9E] flex-shrink-0 mt-[3px]" />
                 <address className="not-italic">
@@ -151,7 +151,7 @@ const RegistrarInfo = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-1">For Document Pickup:</h4>
-                  <ul className="list-disc list-inside space-y-1">
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
                     <li>Bring your valid AUF Student ID or Government-issued ID</li>
                     <li>Present your Official Receipt or payment confirmation</li>
                     <li>Documents are released only to the student or authorized representative</li>
@@ -164,7 +164,7 @@ const RegistrarInfo = () => {
                   <InformationCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
                   For Representatives:
                 </h4>
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="list-disc list-inside space-y-1 text-gray-700">
                   <li>Bring an authorization letter from the student</li>
                   <li>Present valid ID of both student and representative</li>
                   <li>Authorization letter must be notarized for TOR requests</li>

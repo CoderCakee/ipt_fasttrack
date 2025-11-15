@@ -7,6 +7,8 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
+import KioskHeader from "../../components/KioskHeader";
+
 
 const PaymentInfo = () => {
   const navigate = useNavigate();
@@ -40,6 +42,8 @@ const PaymentInfo = () => {
     <div className="relative min-h-screen font-sans text-gray-800 bg-[#2C3E9E]">
       {/* Kiosk-style background */}
       <KioskBackground opacity={15} blueOpacity={80} />
+      <KioskHeader />
+      
 
       {/* Main content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-6">

@@ -5,8 +5,10 @@ import {
   MagnifyingGlassIcon,
   CurrencyDollarIcon,
   InformationCircleIcon,
+  PhoneIcon,
 } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
+import KioskHeader from "../../components/KioskHeader";
 
 const HomeAlumni = () => {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ const HomeAlumni = () => {
       title: "Check Request Status",
       subtitle: "Track your document request",
       icon: <MagnifyingGlassIcon className="w-10 h-10 text-blue-700" />,
-      path: "/CheckRequestStatus",
+      path: "/CheckStatusAlumni",
     },
     {
       title: "Payment Guidelines",
@@ -42,11 +44,12 @@ const HomeAlumni = () => {
     <div className="relative min-h-screen font-sans text-gray-800 bg-[#2C3E9E]">
       {/* Background */}
       <KioskBackground opacity={15} blueOpacity={80} />
+      <KioskHeader />
 
       {/* Foreground content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         {/* Main White Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-14 mb-10">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-20 sm:mt-24 mb-10">
           {/* Header */}
           <header className="bg-blue-100 rounded-xl p-4 sm:p-6 mb-6 text-gray-800 shadow-md">
             <h1 className="text-lg font-semibold mb-2 text-gray-800">
@@ -81,6 +84,17 @@ const HomeAlumni = () => {
               </button>
             ))}
           </section>
+
+           <button
+              type="button"
+              className="mt-6 flex items-center gap-2 w-full border border-gray-300 rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              onClick={() => navigate("/ContactRegistrar")}
+              aria-label="Contact Registrar"
+            >
+              <PhoneIcon className="w-5 h-5" />
+              Contact Registrar
+            </button>
+
         </div>
       </div>
     </div>

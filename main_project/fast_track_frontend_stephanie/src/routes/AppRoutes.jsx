@@ -15,7 +15,6 @@ import SuccessMessage from '../pages/Kiosk/SuccessMessage';
 import SingleDocumentReceipt from '../pages/Kiosk/SingleDocumentReceipt'; 
 
 import MultiSuccessMessage from '../pages/Kiosk/MultiSuccessMessage'; 
-import MultiDocumentReceipt from '../pages/Kiosk/MultiDocumentReceipt'; 
 import RegistrarInfo from '../pages/Kiosk/RegistrarInfo'; 
 
 
@@ -53,7 +52,7 @@ function AppRoutes() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<WelcomeScreen/>} />
+        <Route path="/WelcomeScreen" element={<WelcomeScreen/>} />
         <Route path="/KioskServicesMenu" element={<KioskServicesMenu />} />
         <Route path="/CheckRequestStatus" element={<CheckRequestStatus />} />
         <Route path="/CheckRequestReceipt" element={<CheckRequestReceipt />} />
@@ -64,10 +63,10 @@ function AppRoutes() {
         <Route path="/SuccessMessage" element={<SuccessMessage />} />
         <Route path="/SingleDocumentReceipt" element={<SingleDocumentReceipt />} />
         <Route path="/MultiSuccessMessage" element={<MultiSuccessMessage />} />
-        <Route path="/MultiDocumentReceipt" element={<MultiDocumentReceipt />} />
         <Route path="/RegistrarInfo" element={<RegistrarInfo />} />
 
 
+        <Route path="/AdminLoginForm" element={<AdminLoginForm />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/RequestManagement" element={<RequestManagement />} />
         <Route path="/PaymentTracking" element={<PaymentTracking />} />

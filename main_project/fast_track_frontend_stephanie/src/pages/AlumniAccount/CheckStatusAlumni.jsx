@@ -3,24 +3,33 @@ import { useNavigate } from "react-router-dom";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 import { ArrowLeftIcon, QrCodeIcon, CameraIcon } from "@heroicons/react/24/solid";
+import QRScanningModal from "../../components/Modals/QRScanningModal";
 
 export default function CheckStatusAlumni() {
   const navigate = useNavigate();
   const [qrData, setQrData] = useState("");
-  const [scanning, setScanning] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleBack = () => navigate("/KioskServicesMenu");
+  const handleBack = () => navigate(-1);
 
   // Simulate QR code scan from camera
   const handleScan = () => {
-    // TODO: Integrate actual camera QR scanner here
-    alert("Camera scanner activated. Implement camera scanning here.");
-    const scannedRequestNumber = "FAST-2024-510586"; // Example simulated result
-    setQrData(scannedRequestNumber);
-    navigate("/CheckRequestReceipt", {
-      state: { data: { request_number: scannedRequestNumber } },
-    });
+    setModalVisible(true); // show scanning modal
+
+    setTimeout(() => {
+      const scannedRequestNumber = "FAST-2024-510586"; // Example simulated result
+      setQrData(scannedRequestNumber);
+      setModalVisible(false);
+
+      navigate("/CheckRequestReceipt", {
+        state: { data: { request_number: scannedRequestNumber } },
+      });
+    }, 2000); // simulate 2-second scanning delay
+  };
+
+  const handleCancelScan = () => {
+    setModalVisible(false); // allow user to cancel scanning
   };
 
   // Handle file upload for QR code image
@@ -28,11 +37,10 @@ export default function CheckStatusAlumni() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // TODO: Integrate QR code image decoding here (e.g. use jsQR or similar library)
-    // For now, simulating decoded data
-    alert(`QR Code image uploaded: ${file.name}`);
-    const decodedRequestNumber = "FAST-2024-510586"; // Simulated decoded result
+    // Simulate decoded QR data
+    const decodedRequestNumber = "FAST-2024-510586"; 
     setQrData(decodedRequestNumber);
+
     navigate("/CheckRequestReceipt", {
       state: { data: { request_number: decodedRequestNumber } },
     });
@@ -68,35 +76,38 @@ export default function CheckStatusAlumni() {
           Present your QR code or upload an image to check the status of your document request.
         </p>
 
-        {/* Scan QR Code Button */}
-        <button
-          type="button"
-          onClick={handleScan}
-          className="flex flex-col items-center justify-center gap-4 bg-[#2C3E9E] hover:bg-blue-800 text-white font-bold py-10 px-12 rounded-2xl shadow-2xl hover:shadow-blue-500/50 transition-all transform hover:scale-105 w-full"
-          aria-label="Scan QR Code"
-        >
-          <QrCodeIcon className="h-16 w-16" />
-          <span className="text-xl">Tap to Scan QR</span>
-        </button>
+        {/* Buttons Container: side by side on medium+ screens */}
+        <div className="flex flex-col md:flex-row w-full gap-4">
+          {/* Scan QR Code Button */}
+          <button
+            type="button"
+            onClick={handleScan}
+            className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#2C3E9E] hover:bg-blue-800 text-white font-bold py-10 px-4 rounded-2xl shadow-2xl hover:shadow-blue-500/50 transition-all transform hover:scale-105"
+            aria-label="Scan QR Code"
+          >
+            <QrCodeIcon className="h-16 w-16" />
+            <span className="text-xl">Tap to Scan QR</span>
+          </button>
 
-        {/* Upload QR Code */}
-        <button
-          type="button"
-          onClick={triggerFileInput}
-          className="flex flex-col items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-[#2C3E9E] font-semibold py-6 px-8 rounded-2xl shadow-inner w-full text-sm transition cursor-pointer"
-          aria-label="Upload QR Code Image"
-        >
-          <CameraIcon className="h-10 w-10" />
-          Upload QR Code Image
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={onFileChange}
-            className="hidden"
-            aria-hidden="true"
-          />
-        </button>
+          {/* Upload QR Code */}
+          <button
+            type="button"
+            onClick={triggerFileInput}
+            className="flex-1 flex flex-col items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-[#2C3E9E] font-semibold py-10 px-4 rounded-2xl shadow-inner text-sm transition cursor-pointer"
+            aria-label="Upload QR Code Image"
+          >
+            <CameraIcon className="h-10 w-10" />
+            Upload QR Code
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={onFileChange}
+              className="hidden"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
 
         {/* Instructions */}
         <div className="bg-gray-50 rounded-xl p-4 shadow-inner w-full text-left text-sm text-gray-700">
@@ -104,7 +115,6 @@ export default function CheckStatusAlumni() {
           <ul className="list-disc list-inside space-y-1">
             <li>Hold your QR code steady in front of the scanner or upload a clear QR code image.</li>
             <li>Make sure QR code is not blurry or obstructed.</li>
-            <li>If you encounter issues, ask kiosk staff for help.</li>
           </ul>
         </div>
 
@@ -115,6 +125,9 @@ export default function CheckStatusAlumni() {
           </p>
         )}
       </main>
+
+      {/* QR Scanning Modal */}
+      <QRScanningModal visible={modalVisible} onCancel={handleCancelScan} />
     </div>
   );
 }

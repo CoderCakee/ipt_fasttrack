@@ -3,23 +3,34 @@ import { useNavigate } from "react-router-dom";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 import { ArrowLeftIcon, QrCodeIcon } from "@heroicons/react/24/solid";
+import QRScanningModal from "../../components/Modals/QRScanningModal"; 
 
 export default function CheckRequestStatus() {
   const navigate = useNavigate();
   const [qrData, setQrData] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Navigate back to the services menu
-  const handleBack = () => navigate("/KioskServicesMenu");
+  const handleBack = () => navigate(-1);
 
-  // Placeholder for QR code scanning
+  // Simulate QR scanning
   const handleScan = () => {
-    const scannedRequestNumber = "FAST-2024-510586";
-    setQrData(scannedRequestNumber);
+    setModalVisible(true); // show scanning modal
 
-    // Navigate to receipt page with scanned data
-    navigate("/CheckRequestReceipt", {
-      state: { data: { request_number: scannedRequestNumber } },
-    });
+    setTimeout(() => {
+      const scannedRequestNumber = "FAST-2024-510586";
+      setQrData(scannedRequestNumber);
+      setModalVisible(false);
+
+      // Navigate to receipt page with scanned data
+      navigate("/CheckRequestReceipt", {
+        state: { data: { request_number: scannedRequestNumber } },
+      });
+    }, 2000); // simulate 2-second scanning delay
+  };
+
+  const handleCancelScan = () => {
+    setModalVisible(false); // allow user to cancel scan
   };
 
   return (
@@ -79,6 +90,9 @@ export default function CheckRequestStatus() {
           </p>
         )}
       </main>
+
+      {/* QR Scanning Modal */}
+      <QRScanningModal visible={modalVisible} onCancel={handleCancelScan} />
     </div>
   );
 }

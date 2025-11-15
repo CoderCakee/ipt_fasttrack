@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
@@ -9,17 +9,14 @@ export default function RequestDocumentStep3() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  /**
-   * Receive data from previous step.
-   * Expected structure of location.state:
-   * {
-   *   personalInfo: { firstName, middleName, lastName, studentId, email, phone, relationship },
-   *   documents: [ { doctype_id, name, price, copies, purposeDescription } ]
-   * }
-   */
-  const { personalInfo = {}, documents = [] } = location.state || {};
+  // Redirect back if no state (user accessed page directly)
+  useEffect(() => {
+    if (!location.state || !location.state.personalInfo || !location.state.documents) {
+    }
+  }, [location.state, navigate]);
 
-  // State management
+  const { personalInfo = {}, documents = [], notes = "" } = location.state || {};
+
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -43,12 +40,14 @@ export default function RequestDocumentStep3() {
     setError("");
     setSubmitting(true);
 
-    // Simulate submission delay
+    // TODO: Replace with actual submission API call
     setTimeout(() => {
       setSubmitting(false);
       navigate("/SuccessMessage");
     }, 1500);
   };
+
+  const formatCurrency = (amount) => `₱${amount.toLocaleString()}`;
 
   return (
     <div className="min-h-screen relative flex flex-col bg-[#2C3E9E]">
@@ -103,9 +102,7 @@ export default function RequestDocumentStep3() {
 
               {/* Requester Information */}
               <div className="mb-6">
-                <h4 className="font-semibold text-blue-900 mb-2">
-                  Requester Information
-                </h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Requester Information</h4>
                 <dl className="text-gray-700 text-sm space-y-1">
                   <div>
                     <dt className="inline font-semibold">Name:</dt>{" "}
@@ -125,14 +122,23 @@ export default function RequestDocumentStep3() {
                     <dt className="inline font-semibold">Contact:</dt>{" "}
                     <dd className="inline">{personalInfo.phone || ""}</dd>
                   </div>
+                  <div>
+                    <dt className="inline font-semibold">Relationship:</dt>{" "}
+                    <dd className="inline">{personalInfo.relationship || ""}</dd>
+                  </div>
                 </dl>
               </div>
 
+              {/* Notes */}
+              {notes && (
+                <div className="mb-4 text-gray-700 text-sm">
+                  <strong>Notes / Remarks:</strong> {notes}
+                </div>
+              )}
+
               {/* Documents Requested */}
               <div>
-                <h4 className="font-semibold text-blue-900 mb-2">
-                  Documents Requested
-                </h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Documents Requested</h4>
                 <ul className="divide-y divide-gray-300 text-gray-700 text-sm">
                   {documents.map(({ doctype_id, name, copies, purposeDescription, price }) => (
                     <li key={doctype_id} className="flex justify-between py-3">
@@ -143,7 +149,7 @@ export default function RequestDocumentStep3() {
                         </p>
                       </div>
                       <div className="font-semibold text-gray-900">
-                        ₱{price * copies}
+                        {formatCurrency((price || 0) * (copies || 1))}
                       </div>
                     </li>
                   ))}
@@ -153,9 +159,7 @@ export default function RequestDocumentStep3() {
               {/* Total Amount */}
               <div className="flex justify-between items-center mt-6 border-t border-gray-300 pt-4">
                 <span className="font-semibold text-gray-900">Total Amount:</span>
-                <span className="font-bold text-yellow-600 text-lg">
-                  ₱{totalAmount}
-                </span>
+                <span className="font-bold text-yellow-600 text-lg">{formatCurrency(totalAmount)}</span>
               </div>
 
               {/* Info Box */}
@@ -173,7 +177,7 @@ export default function RequestDocumentStep3() {
                   type="checkbox"
                   checked={acceptedPrivacy}
                   onChange={(e) => setAcceptedPrivacy(e.target.checked)}
-                  className="form-checkbox mt-1 h-4 w-4 text-[#6B0F0F]"
+                  className="form-checkbox mt-1 h-4 w-4 text-yellow-600"
                   aria-required="true"
                 />
                 <span className="text-sm text-gray-700">
@@ -208,7 +212,6 @@ export default function RequestDocumentStep3() {
                 {submitting ? "Submitting..." : "Submit Request"}
               </button>
             </div>
-
           </div>
         </main>
       </div>

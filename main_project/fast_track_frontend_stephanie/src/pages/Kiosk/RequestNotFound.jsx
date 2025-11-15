@@ -22,7 +22,7 @@ const RequestNotFound = () => {
     
       <main className="relative z-10 flex-grow flex items-center justify-center px-4">
         <div
-          className="bg-white max-w-md w-full p-8 rounded-lg border-2 border-yellow-400 shadow-lg
+          className="bg-white max-w-md w-full p-8 rounded-lg shadow-lg
                      flex flex-col items-center text-center
                      transition-shadow hover:shadow-xl"
         >
