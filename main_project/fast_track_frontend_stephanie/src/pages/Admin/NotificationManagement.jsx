@@ -20,8 +20,8 @@ const NotificationManagement = () => {
   const [message, setMessage] = useState("");
   const [sendImmediately, setSendImmediately] = useState(false);
 
-  // Notification templates data
-  const templates = [
+  // Notification templates data - now stateful for adding new ones
+  const [templates, setTemplates] = useState([
     {
       id: 1,
       title: "Documents Ready for Pickup",
@@ -52,7 +52,12 @@ For payment options, visit our office or use our online payment system.
 Best regards,
 FAST Track Team`,
     },
-  ];
+  ]);
+
+  // States for add template modal
+  const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
+  const [newTemplateTitle, setNewTemplateTitle] = useState("");
+  const [newTemplateContent, setNewTemplateContent] = useState("");
 
   // Placeholder notifications history
   const [notifications] = useState([
@@ -91,7 +96,7 @@ FAST Track Team`,
       setSubject(selectedTemplate.title);
       setMessage(content);
     }
-  }, [template, requestNumber]);
+  }, [template, requestNumber, templates]);
 
   // Handlers
   const handleSendNotification = (e) => {
@@ -100,6 +105,20 @@ FAST Track Team`,
       `Notification Sent!\nType: ${notificationType}\nRecipient: ${recipient}\nRequest Number: ${requestNumber}\nSubject: ${subject}\nMessage:\n${message}\nSend Immediately: ${sendImmediately}`
     );
     // TODO: Implement real API call here
+  };
+
+  const handleAddTemplate = (e) => {
+    e.preventDefault();
+    if (!newTemplateTitle.trim() || !newTemplateContent.trim()) return;
+    const newTemplate = {
+      id: Date.now(), // Simple ID generation
+      title: newTemplateTitle,
+      content: newTemplateContent,
+    };
+    setTemplates([...templates, newTemplate]);
+    setNewTemplateTitle("");
+    setNewTemplateContent("");
+    setShowAddTemplateModal(false);
   };
 
   // Simple mail icon
@@ -346,7 +365,16 @@ FAST Track Team`,
             aria-labelledby="templates-tab"
             className="border border-blue-200 rounded-md p-6 bg-white space-y-6"
           >
-            <h2 className="text-gray-800 font-semibold mb-4">Notification Templates</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-gray-800 font-semibold">Notification Templates</h2>
+              <button
+                onClick={() => setShowAddTemplateModal(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition shadow-sm"
+                aria-label="Add new template"
+              >
+                Add New Template
+              </button>
+            </div>
 
             {templates.map(({ id, title, content }) => (
               <div
@@ -361,6 +389,60 @@ FAST Track Team`,
               </div>
             ))}
           </section>
+        )}
+
+        {/* Add Template Modal */}
+        {showAddTemplateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full shadow-xl">
+              <h2 className="text-xl font-bold text-blue-900 mb-6">Add New Template</h2>
+              <form onSubmit={handleAddTemplate} className="space-y-4">
+                <div>
+                  <label htmlFor="templateTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                    Template Title
+                  </label>
+                  <input
+                    type="text"
+                    id="templateTitle"
+                    value={newTemplateTitle}
+                    onChange={(e) => setNewTemplateTitle(e.target.value)}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="Enter template title"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="templateContent" className="block text-sm font-medium text-gray-700 mb-1">
+                    Template Content
+                  </label>
+                  <textarea
+                    id="templateContent"
+                    value={newTemplateContent}
+                    onChange={(e) => setNewTemplateContent(e.target.value)}
+                    required
+                    rows={6}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="Enter template content"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTemplateModal(false)}
+                    className="border border-gray-400 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                  >
+                    Add Template
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </div>
     </AdminLayout>

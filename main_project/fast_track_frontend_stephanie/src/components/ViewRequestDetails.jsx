@@ -40,14 +40,13 @@ const StepBar = ({ completed }) => (
 
 /**
  * ViewRequestDetails Component
- * Shows request info, progress tracker, and registrar actions.
+ * Shows request info, progress tracker, and a single next-step button.
  * Props:
  * - request: object with database-aligned fields.
- * - onMarkProcessing, onMarkReleased: callbacks for future use.
+ * - onUpdateStatus: function(request_id, nextStatus) → updates parent state.
  * - onClose: callback to close/hide this detail panel.
  */
-const ViewRequestDetails = ({ request, onMarkProcessing, onMarkReleased, onClose }) => {
-  // Extract from backend-style data
+const ViewRequestDetails = ({ request, onUpdateStatus, onClose }) => {
   const {
     request_id,
     status = "Requested",
@@ -66,6 +65,24 @@ const ViewRequestDetails = ({ request, onMarkProcessing, onMarkReleased, onClose
     (s) => s.toLowerCase() === status.toLowerCase()
   );
 
+  // Determine next status and button label
+  const nextStatusMap = {
+    Requested: "Processing",
+    Processing: "Released",
+    Released: "Received",
+  };
+  const nextStatus = nextStatusMap[status];
+  const buttonLabel = nextStatus ? `Mark as ${nextStatus}` : null;
+
+  const handleStatusClick = () => {
+    if (nextStatus) {
+      onClose(); // Close modal first
+      setTimeout(() => {
+        onUpdateStatus && onUpdateStatus(request_id, nextStatus);
+      }, 100); // Delay to ensure modal closes smoothly
+    }
+  };
+
   return (
     <div
       role="dialog"
@@ -74,14 +91,13 @@ const ViewRequestDetails = ({ request, onMarkProcessing, onMarkReleased, onClose
       className="absolute bg-white rounded-lg shadow-xl p-6 max-w-md w-full z-20"
       style={{ minWidth: 350 }}
     >
-      {/* Close/Back button top-right */}
+      {/* Close button top-right */}
       <button
         onClick={onClose}
         aria-label="Close request details"
         className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-600 rounded"
         type="button"
       >
-        {/* X icon SVG */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="h-6 w-6"
@@ -151,9 +167,7 @@ const ViewRequestDetails = ({ request, onMarkProcessing, onMarkReleased, onClose
         {statusSteps.map((step, index) => (
           <React.Fragment key={step}>
             <StepCircle completed={index <= currentStepIndex} number={index + 1} />
-            {index < statusSteps.length - 1 && (
-              <StepBar completed={index < currentStepIndex} />
-            )}
+            {index < statusSteps.length - 1 && <StepBar completed={index < currentStepIndex} />}
           </React.Fragment>
         ))}
       </div>
@@ -161,28 +175,18 @@ const ViewRequestDetails = ({ request, onMarkProcessing, onMarkReleased, onClose
       {/* Step labels */}
       <div className="grid grid-cols-4 text-xs text-gray-600 font-semibold mb-6">
         {statusSteps.map((step) => (
-          <div key={step} className="text-center">
-            {step}
-          </div>
+          <div key={step} className="text-center">{step}</div>
         ))}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex justify-end space-x-3">
-        <Button
-          disabled={status !== "Requested"}
-          onClick={() => onMarkProcessing && onMarkProcessing(request_id)}
-        >
-          Mark as Processing
-        </Button>
-        <Button
-          black
-          disabled={status !== "Processing"}
-          onClick={() => onMarkReleased && onMarkReleased(request_id)}
-        >
-          Mark as Released
-        </Button>
-      </div>
+      {/* Single Next-Step Button */}
+      {nextStatus ? (
+        <div className="flex justify-end">
+          <Button black onClick={handleStatusClick}>{buttonLabel}</Button>
+        </div>
+      ) : (
+        <p className="text-green-600 font-semibold text-right">Final Step Completed ✓</p>
+      )}
     </div>
   );
 };
