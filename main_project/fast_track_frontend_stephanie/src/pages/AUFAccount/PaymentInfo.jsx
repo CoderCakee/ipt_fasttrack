@@ -9,7 +9,8 @@ import {
 } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
 import KioskHeader from "../../components/KioskHeader";
-import "./PaymentInfo.css"; // <-- Add this for hiding scrollbar
+import BankTransactionSlip from "../../assets/transaction-slip-example.jpg";
+import "./PaymentInfo.css"; 
 
 const PaymentInfo = () => {
   const navigate = useNavigate();
@@ -19,8 +20,7 @@ const PaymentInfo = () => {
 
   const bankAccounts = [
     { name: "BDO", description: "Angeles University Foundation", accountNumber: "0012-3456-7890" },
-    { name: "BPI", description: "Angeles University Foundation", accountNumber: "1234-5678-90" },
-    { name: "Landbank", description: "Angeles University Foundation", accountNumber: "0123-4567-89" },
+    { name: "Metrobank", description: "Angeles University Foundation", accountNumber: "0123-4567-89" },
   ];
 
   const handleBack = () => navigate(-1);
@@ -127,6 +127,19 @@ const PaymentInfo = () => {
                 <span>
                   <strong>Important:</strong> Include your Request Number and Full Name in the transaction notes/reference.
                 </span>
+              </div>
+
+              {/* Added example image of real transaction slip */}
+              <div className="mt-6">
+                <h4 className="font-semibold mb-2 text-gray-900">Example Transaction Slip</h4>
+                <img
+                  src={BankTransactionSlip}
+                  alt="Example of a cash transaction slip showing how to fill details for payment"
+                  className="w-full max-w-md mx-auto rounded shadow-md border border-gray-300"
+                />
+                <p className="text-xs text-gray-600 mt-2 text-center">
+                  Sample cash transaction slip to shows how to include your Request Number and Full Name.
+                </p>
               </div>
             </article>
           </section>

@@ -69,6 +69,14 @@ const SingleDocumentReceipt = ({
           .no-print, .header, .background {
             display: none !important;
           }
+
+          /* Ensure only the receipt content is printed */
+          #receipt-content {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 20px !important;
+          }
         }
       `}</style>
 
@@ -78,7 +86,7 @@ const SingleDocumentReceipt = ({
       </div>
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
+      <div className="fixed top-0 left-0 right-0 z-20 header">
         <KioskHeader />
       </div>
 
