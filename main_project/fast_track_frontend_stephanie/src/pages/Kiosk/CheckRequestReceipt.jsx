@@ -72,7 +72,7 @@ const CheckRequestReceipt = () => {
 
   // Navigation handlers
   const handleCheckAnother = () => setTimeout(() => navigate("/CheckRequestStatus"), 700);
-  const handleDone = () => setTimeout(() => navigate("/KioskServicesMenu"), 700);
+  const handleDone = () => setTimeout(() => navigate(-1), 700);
 
   return (
     <div className="relative min-h-screen flex justify-center items-center bg-[#2C3E9E] p-6 overflow-hidden">

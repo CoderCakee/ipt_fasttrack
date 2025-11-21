@@ -114,22 +114,24 @@ export default function RequestDocumentStep2() {
       <div className="relative z-10 flex flex-col min-h-screen">
         <KioskHeader />
 
-        <main className="flex-grow flex justify-center items-start px-4 pt-16 pb-8">
+        <main className="flex-grow flex justify-center items-start px-4 pt-[80px] pb-8">
           <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-10 mx-auto mt-12">
-            {/* Header */}
-            <div className="relative mb-6">
-              <button
-                onClick={handleBack}
-                type="button"
-                className="absolute left-0 flex items-center text-blue-900 hover:text-blue-700 font-semibold transition"
-              >
-                <ArrowLeftIcon className="h-5 w-5 mr-1" />
-                Back
-              </button>
-              <h2 className="text-blue-900 font-bold text-2xl tracking-wide text-center select-none">
-                Request Document
-              </h2>
-            </div>
+            {/* Header: Back button and centered title */}
+                        <div className="relative mb-6 flex items-center space-x-3">
+                          <button
+                            onClick={handleBack}
+                            type="button"
+                            className="text-blue-900 hover:text-blue-700 font-semibold flex items-center space-x-1 shrink-0"
+                            aria-label="Back to services menu"
+                          >
+                            <ArrowLeftIcon className="h-5 w-5" />
+                            Back
+                          </button>
+            
+                          <h2 className="text-blue-900 font-bold text-2xl tracking-wide text-center flex-1 select-none">
+                            Request Document
+                          </h2>
+                        </div>
 
             {/* Progress Tracker */}
             <div className="flex justify-center items-center space-x-6 mb-6 w-2/3 max-w-sm mx-auto">

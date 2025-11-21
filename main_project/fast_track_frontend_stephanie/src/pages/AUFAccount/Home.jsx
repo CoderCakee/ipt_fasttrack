@@ -8,10 +8,10 @@ import {
   BookOpenIcon,
   PhoneIcon,
   ChevronRightIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import KioskBackground from "../../components/KioskBackground";
 import KioskHeader from "../../components/KioskHeader";
-
 
 const Home = ({
   userName = "Juan",
@@ -31,22 +31,21 @@ const Home = ({
       <KioskBackground opacity={15} blueOpacity={80} />
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
-        <KioskHeader />
-      </div>
+      <KioskHeader />
+
 
       {/* Scrollable Content */}
-      <div 
-        className="flex-1 overflow-y-auto pt-16" // Adjusted pt-16 for closer positioning to header
+      <div
+        className="flex-1 overflow-y-auto pt-16" // adjusted padding to offset header height
         style={{
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE/Edge
+          scrollbarWidth: "none", // Firefox
+          msOverflowStyle: "none", // IE/Edge
         }}
       >
         <style>
           {`
             .scrollable-content::-webkit-scrollbar {
-              display: none; // Chrome, Safari, Opera
+              display: none; /* Chrome, Safari, Opera */
             }
           `}
         </style>
@@ -64,12 +63,12 @@ const Home = ({
                 <span className="font-bold text-xl">{userName}</span>
               </h2>
 
-            <div className="bg-blue-50 rounded-md py-3 px-4 flex flex-col items-start text-left max-w-full">
-              <span className="text-sm font-medium text-gray-700">
-              Active <span className="font-semibold">Requests</span>
-              </span>
-              <span className="font-bold text-3xl text-blue-900">{activeRequestCount}</span>
-            </div>
+              <div className="bg-blue-50 rounded-md py-3 px-4 flex flex-col items-start text-left max-w-full">
+                <span className="text-sm font-medium text-gray-700">
+                  Active <span className="font-semibold">Requests</span>
+                </span>
+                <span className="font-bold text-3xl text-blue-900">{activeRequestCount}</span>
+              </div>
             </header>
 
             {/* Active Requests */}
@@ -114,25 +113,23 @@ const Home = ({
                 { icon: <UserIcon className="w-12 h-12 text-blue-700" />, label: "My Profile", onClick: () => navigate("/MyProfile") },
               ].map(({ icon, label, onClick }) => (
                 <button
-    key={label}
-    onClick={onClick}
-    className="group flex flex-col items-center justify-center border border-gray-300 rounded-xl 
-               p-3 sm:p-4 bg-white shadow-sm transition cursor-pointer
-               hover:bg-blue-700 hover:border-blue-800 hover:shadow-md"
-    aria-label={label}
-  >
-    {/* Icon wrapper */}
-    <div className="w-12 h-12 text-blue-700 transition group-hover:text-white flex items-center justify-center">
-      {React.cloneElement(icon, { className: "w-12 h-12 stroke-current" })}
-    </div>
-    
-    {/* Label */}
-    <span className="mt-1 text-sm font-semibold text-gray-700 transition group-hover:text-white">
-      {label}
-    </span>
-  </button>
-
-
+                  key={label}
+                  onClick={onClick}
+                  className="group flex flex-col items-center justify-center border border-gray-300 rounded-xl 
+                             p-3 sm:p-4 bg-white shadow-sm transition cursor-pointer
+                             hover:bg-blue-700 hover:border-blue-800 hover:shadow-md"
+                  aria-label={label}
+                >
+                  {/* Icon wrapper */}
+                  <div className="w-12 h-12 text-blue-700 transition group-hover:text-white flex items-center justify-center">
+                    {React.cloneElement(icon, { className: "w-12 h-12 stroke-current" })}
+                  </div>
+                  
+                  {/* Label */}
+                  <span className="mt-1 text-sm font-semibold text-gray-700 transition group-hover:text-white">
+                    {label}
+                  </span>
+                </button>
               ))}
             </section>
 

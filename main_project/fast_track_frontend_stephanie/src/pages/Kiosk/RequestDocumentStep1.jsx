@@ -178,22 +178,22 @@ const handleBack = () => navigate(-1);
       <div className="relative z-10 flex flex-col min-h-screen">
         <KioskHeader />
 
-        <main className="flex-grow flex justify-center items-start px-4 pt-16 pb-8">
+        <main className="flex-grow flex justify-center items-start px-4 pt-[80px] pb-8">
           <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-10 mx-auto mt-12">
 
             {/* Header: Back button and centered title */}
-            <div className="relative mb-6">
+            <div className="relative mb-6 flex items-center space-x-3">
               <button
                 onClick={handleBack}
                 type="button"
-                className="absolute left-0 flex items-center text-blue-900 hover:text-blue-700 font-semibold transition"
+                className="text-blue-900 hover:text-blue-700 font-semibold flex items-center space-x-1 shrink-0"
                 aria-label="Back to services menu"
               >
-                <ArrowLeftIcon className="h-5 w-5 mr-1" />
+                <ArrowLeftIcon className="h-5 w-5" />
                 Back
               </button>
 
-              <h2 className="text-blue-900 font-bold text-2xl tracking-wide text-center select-none">
+              <h2 className="text-blue-900 font-bold text-2xl tracking-wide text-center flex-1 select-none">
                 Request Document
               </h2>
             </div>
@@ -231,10 +231,10 @@ const handleBack = () => navigate(-1);
         id="firstName"
         name="firstName"
         type="text"
-        placeholder="Enter your first name"
+        placeholder="First Name"
         value={formData.firstName}
         onChange={handleChange}
-        className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+        className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition  ${
           errors.firstName
             ? "border-red-600 ring-red-500 bg-red-50"
             : "border-gray-300 bg-gray-50 focus:ring-blue-600"
@@ -252,7 +252,7 @@ const handleBack = () => navigate(-1);
         id="middleName"
         name="middleName"
         type="text"
-        placeholder="Enter your middle name"
+        placeholder="Middle Name"
         value={formData.middleName}
         onChange={handleChange}
         className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 py-2 px-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
@@ -268,7 +268,7 @@ const handleBack = () => navigate(-1);
         id="lastName"
         name="lastName"
         type="text"
-        placeholder="Enter your last name"
+        placeholder="Last Name"
         value={formData.lastName}
         onChange={handleChange}
         className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
@@ -313,7 +313,7 @@ const handleBack = () => navigate(-1);
         placeholder="example@gmail.com"
         value={formData.email}
         onChange={handleChange}
-        className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition ${
+        className={`mt-1 block w-full rounded-md border py-2 px-3 focus:outline-none focus:ring-2 transition${
           errors.email
             ? "border-red-600 ring-red-500 bg-red-50"
             : "border-gray-300 bg-gray-50 focus:ring-blue-600"
