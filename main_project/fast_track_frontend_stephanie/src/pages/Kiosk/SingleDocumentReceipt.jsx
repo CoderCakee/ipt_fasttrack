@@ -30,31 +30,34 @@ const SingleDocumentReceipt = ({
   const receiptElement = document.getElementById("receipt-content");
   const buttons = document.getElementById("receipt-buttons");
 
-  // Hide the buttons before capture
+  // Hide buttons before capture
   if (buttons) buttons.style.display = "none";
 
-  // Wait a tiny bit for UI update
-  await new Promise((resolve) => setTimeout(resolve, 150));
+  // Save current width and apply fixed width for PDF capture
+  const originalWidth = receiptElement.style.width;
+  receiptElement.style.width = "800px"; // fixed desktop width
 
-  // Generate canvas
+  // Wait a tiny bit for layout to adjust
+  await new Promise((resolve) => setTimeout(resolve, 100));
+
+  // Capture canvas
   const canvas = await html2canvas(receiptElement, {
     scale: 2,
     useCORS: true,
   });
 
-  // Restore button visibility
+  // Restore original width and button visibility
+  receiptElement.style.width = originalWidth;
   if (buttons) buttons.style.display = "flex";
 
   const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF("p", "mm", "a4");
-
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
   pdf.save(`${requestNumber}.pdf`);
 };
-
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#2C3E9E] font-serif">
@@ -86,13 +89,13 @@ const SingleDocumentReceipt = ({
       </div>
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 header">
+      <div className="w-full header">        
         <KioskHeader />
       </div>
 
       {/* Scrollable Content */}
       <div 
-        className="flex-1 overflow-y-auto pt-24" 
+        className="flex-1 overflow-y-auto" 
         style={{
           scrollbarWidth: 'none', // Firefox
           msOverflowStyle: 'none', // IE/Edge
@@ -106,7 +109,7 @@ const SingleDocumentReceipt = ({
           `}
         </style>
 
-        <main className="relative z-20 flex-grow px-6 pb-6">
+        <main className="relative z-20 flex-grow px-6 pb-6 mt-32">
         <div 
         id="receipt-content"
         className="bg-white rounded-2xl shadow-xl max-w-xl w-full mx-auto p-6 mt-4 text-[#2c3e9e] space-y-4 mb-20">
