@@ -183,6 +183,7 @@ CREATE TABLE users (
     FOREIGN KEY (role_id) REFERENCES roles(role_id),
     FOREIGN KEY (priority_id) REFERENCES priority_categories(priority_id),
     FOREIGN KEY (status_id) REFERENCES role_statuses(status_id)
+    FOREIGN KEY (department_id) REFERENCES departments(
 );
 
 CREATE TABLE roles (

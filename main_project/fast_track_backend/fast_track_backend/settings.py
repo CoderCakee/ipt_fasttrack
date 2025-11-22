@@ -48,7 +48,6 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'users',
     'requests',
-    'payments',
     'notifications',
     'doccatalog',
     'sysapi',
