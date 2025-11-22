@@ -53,7 +53,7 @@ const Home = ({
         {/* Main content */}
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6">
           {/* Dashboard card */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-20">
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-20 mt-20">
 
             {/* Welcome Banner */}
             <header className="bg-blue-100 rounded-xl p-4 sm:p-6 mb-6 text-gray-800 shadow-md">

@@ -26,7 +26,7 @@ const RegistrarInfo = () => {
       <KioskBackground opacity={10} blueOpacity={80} />
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
+      <div className="w-full">
         <KioskHeader />
       </div>
 
@@ -50,7 +50,7 @@ const RegistrarInfo = () => {
         <div className="relative z-10 flex flex-col min-h-screen">
           {/* Main Content */}
           <main className="flex-grow flex justify-center items-start px-4 sm:px-6 py-10 ">
-            <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-6 pt-6 mb-20">
+            <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-6 pt-6 mb-20 mt-4">
               
               {/* Back Button */}
               <button

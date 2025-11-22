@@ -62,7 +62,7 @@ const ViewDetails = () => {
       <KioskBackground opacity={15} blueOpacity={80} />
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
+      <div className="w-full">
         <KioskHeader />
       </div>
 
@@ -86,7 +86,7 @@ const ViewDetails = () => {
           {/* Main content wrapper */}
           <div className="flex-grow flex justify-center items-start px-4 sm:px-6">
             {/* White content container */}
-            <div className="bg-white rounded-2xl shadow-lg max-w-4xl w-full p-6 md:p-10 mb-20">
+            <div className="bg-white rounded-2xl shadow-lg max-w-4xl w-full p-6 md:p-10 mb-20 mt-12">
 
               {/* Back Button */}
               <button

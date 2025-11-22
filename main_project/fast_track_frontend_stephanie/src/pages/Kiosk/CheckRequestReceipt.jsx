@@ -79,7 +79,7 @@ const CheckRequestReceipt = () => {
       <KioskBackground opacity={10} blueOpacity={80} />
       <KioskHeader />
 
-      <div className="relative z-10 bg-white rounded-xl max-w-[900px] w-full flex flex-col lg:flex-row p-8 shadow-xl overflow-hidden">
+      <div className="relative z-10 bg-white rounded-xl max-w-[900px] w-full flex flex-col lg:flex-row p-8 shadow-xl overflow-hidden mt-28">
         
         {/* Left Section: Request Details */}
         <div className="w-full lg:w-3/5 pr-0 lg:pr-8 mb-6 lg:mb-0">
