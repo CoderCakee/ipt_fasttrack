@@ -2,6 +2,7 @@
 from django.db.models import Count, Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import check_password, make_password
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -9,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from requests.models import Request, RequestPurpose
-from users.models import User
+from users.models import User, Role, RoleStatus, Department
 from users.auth import TokenAuthentication
 from doccatalog.models import DocumentType
 from payments.models import Payment
@@ -17,7 +18,9 @@ from notifications.models import Notification, Templates
 from .serializers import (CheckRequestNumberSerializer, CheckRequestByStudentSerializer,
                           RequestCreateSerializer, RequestReceiptSerializer,
                           LoginSerializer, AdminDashboardSerializer, AdminRequestManagerSerializer,
-                          AdminSendNotifSerializer, AdminNotifHistorySerializer, AdminNotifTemplatesSerializer)
+                          AdminSendNotifSerializer, AdminNotifHistorySerializer, AdminNotifTemplatesSerializer,
+                          AdminUserListSerializer, AdminUserCRUDSerializer, RoleSerializer,
+                          DepartmentSerializer, StatusSerializer)
 
 from hardware_scripts.gsm import *
 from hardware_scripts.printer import *
@@ -123,6 +126,77 @@ def request_receipt_view(request, request_id):
 
     serializer = RequestReceiptSerializer(req)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def rfid_lookup_view(request):
+    # Get the rfid number from the query parameters (e.g., ?rfid=0012345)
+    rfid_input = request.query_params.get('rfid', None)
+
+    if not rfid_input:
+        return Response(
+            {"error": "RFID number is required."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        # NOTE: Your model uses IntegerField for rfid_num.
+        # If the card sends "0012345", Python might see "12345".
+        # Ensure we cast input to int to match the database storage.
+        rfid_int = int(rfid_input)
+
+        user = User.objects.get(rfid_num=rfid_int)
+
+        # Construct the data payload matching your React form fields
+        data = {
+            "first_name": user.first_name,
+            "middle_name": user.middle_name if user.middle_name else "",
+            "last_name": user.last_name,
+            "student_id": user.student_number,  # Mapping student_number to ID
+            "email": user.email_address,
+            "relationship": "Current Student",  # Or logic to determine this based on role_id
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    except ValueError:
+        return Response(
+            {"error": "Invalid RFID format."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except User.DoesNotExist:
+        return Response(
+            {"error": "Student not found with this RFID tag."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+'''
+For the frontend:
+const handleScan = async (scannedRfid) => {
+    try {
+        // Call your new Django endpoint
+        const response = await axios.get(`/api/lookup-rfid/?rfid=${scannedRfid}`);
+        
+        const data = response.data;
+
+        // Update your form state
+        setFormData({
+            firstName: data.first_name,
+            middleName: data.middle_name,
+            lastName: data.last_name,
+            studentId: data.student_id,
+            email: data.email,
+            // Keep phone empty as requested
+            phoneNumber: formData.phoneNumber 
+        });
+
+        // Close scan modal/dialog
+        setIsScanning(false);
+        
+    } catch (error) {
+        console.error("Scan failed", error);
+        alert("Student not found or RFID error.");
+    }
+};
+'''
 # </editor-fold>
 
 # <editor-fold desc="Admin API Views">
@@ -371,11 +445,104 @@ def admin_notification_template_detail_view(request, pk):
         template.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+# --- 5A, 5B & List: User Management ---
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_user_management_view(request):
+    # GET: List Users (With Search and Filtering)
+    if request.method == 'GET':
+        search_query = request.query_params.get('search', '').strip()
+        role_filter = request.query_params.get('role')
+
+        queryset = User.objects.select_related('role_id', 'department_id', 'status_id').all().order_by('-created_at')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email_address__icontains=search_query)
+            )
+
+        if role_filter:
+            queryset = queryset.filter(role_id__name=role_filter)
+
+        serializer = AdminUserListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # POST: Add User (5B)
+    elif request.method == 'POST':
+        serializer = AdminUserCRUDSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# --- 5C, 5D: Detail, Edit, Delete, Reset Pass ---
+@api_view(['GET', 'PUT', 'DELETE', 'PATCH'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_user_detail_view(request, pk):
+    user = get_object_or_404(User, pk=pk)
+
+    # GET: Fetch single user details
+    if request.method == 'GET':
+        serializer = AdminUserListSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # PUT: Edit User (5C) - Expects full object or partial
+    elif request.method == 'PUT':
+        # partial=True allows sending just the fields you want to change
+        serializer = AdminUserCRUDSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            # Return the "List" format so the frontend can update the card immediately
+            read_serializer = AdminUserListSerializer(user)
+            return Response(read_serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # DELETE: Delete User (5D)
+    elif request.method == 'DELETE':
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+    # PATCH: Specific for Password Reset (Optional utility)
+    elif request.method == 'PATCH':
+        new_pass = request.data.get('password')
+        if new_pass:
+            user.password = make_password(new_pass)
+            user.save()
+            return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
+        return Response({"error": "No password provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# --- 5A: Manage Roles (View Roles) ---
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def admin_user_manager_view(request):
-    pass
+def admin_role_management_view(request):
+    roles = Role.objects.all()
+    serializer = RoleSerializer(roles, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# --- UTILITY: Dropdown Data for Frontend ---
+# Your frontend needs this to populate the <select> options in Add/Edit User
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def admin_utils_dropdowns(request):
+    roles = Role.objects.all()
+    departments = Department.objects.all()
+    statuses = RoleStatus.objects.all()
+
+    return Response({
+        "roles": RoleSerializer(roles, many=True).data,
+        "departments": DepartmentSerializer(departments, many=True).data,
+        "statuses": StatusSerializer(statuses, many=True).data
+    }, status=status.HTTP_200_OK)
 
 '''
 5. USER MANAGEMENT

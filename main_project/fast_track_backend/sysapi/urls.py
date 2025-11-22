@@ -3,14 +3,16 @@ from .views import (check_request_number_view, check_request_by_student_view, ge
                     request_receipt_view, request_document_view, login_view,
                     refresh_token_view, admin_dashboard_view, admin_request_manager_view,
                     admin_send_notification_view, admin_notification_history_view, admin_notification_templates_view,
-                    admin_notification_template_detail_view)
+                    admin_notification_template_detail_view, rfid_lookup_view, admin_user_detail_view,
+                    admin_user_management_view, admin_role_management_view, admin_utils_dropdowns)
 
 urlpatterns = [
     #Check Status
     path('check-request-number/', check_request_number_view, name='check-request-number'),
     path('check-request-by-student/', check_request_by_student_view, name='check-request-by-student'),
     path('check-request-details/<int:request_id>/', get_request_details_view, name='get-request-details'),
-    #Request Document
+    #Request Documents
+    path('lookup-rfid/', rfid_lookup_view, name='lookup-rfid'),
     path('request-create/', request_document_view, name='request-create'),
     path('request-receipt/<int:request_id>/', request_receipt_view, name='request-receipt'),
     #Multi-Document Request
@@ -26,4 +28,8 @@ urlpatterns = [
     path('admin-dashboard/notifications/history', admin_notification_history_view, name='admin-notification-history'),
     path('admin-dashboard/notifications/templates', admin_notification_templates_view, name='admin-notification-templates'),
     path('admin-dashboard/notifications/templates-detail', admin_notification_template_detail_view, name='admin-notification-template-detail'),
+    path('admin-dashboard/users/', admin_user_management_view, name='admin-user-list-create'),
+    path('admin-dashboard/users/<int:pk>/', admin_user_detail_view, name='admin-user-detail'),
+    path('admin-dashboard/roles/', admin_role_management_view, name='admin-role-list'),
+    path('admin-dashboard/utils/dropdowns/', admin_utils_dropdowns, name='admin-utils-dropdowns'),
 ]

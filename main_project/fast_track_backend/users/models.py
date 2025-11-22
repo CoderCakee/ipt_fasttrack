@@ -29,6 +29,18 @@ CREATE TABLE priority_categories (
 );
 '''
 
+class Department(models.Model):
+    department_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=32)
+    description = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        app_label = 'users'
+        db_table = 'departments'
+
 class Role(models.Model):
     role_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=15, unique=True)
@@ -72,6 +84,8 @@ class User(models.Model):
     role_id = models.ForeignKey(Role, on_delete=models.PROTECT, default=1, db_column='role_id')
     priority_id = models.ForeignKey(PriorityCategory, null=True, blank=True, on_delete=models.SET_NULL, db_column='priority_id')
     status_id = models.ForeignKey(RoleStatus, null=True, blank=True, on_delete=models.SET_NULL, db_column='status_id')
+    department_id = models.ForeignKey(Department, null=True, blank=True, on_delete=models.SET_NULL, db_column='department_id')
+    rfid_num = models.IntegerField()
     first_name = models.CharField(max_length=35)
     middle_name = models.CharField(max_length=35, null=True, blank=True)
     last_name = models.CharField(max_length=35, null=True, blank=True)

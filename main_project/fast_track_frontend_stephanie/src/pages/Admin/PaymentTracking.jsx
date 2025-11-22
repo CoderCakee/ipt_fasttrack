@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import SearchIcon from "../../assets/search.png";
 
-// Status badge component
+/* ----------------------- Status Badge ----------------------- */
 const StatusBadge = ({ status }) => {
   const colors = {
     Paid: "bg-green-100 text-green-700",
@@ -11,19 +11,16 @@ const StatusBadge = ({ status }) => {
     Failed: "bg-red-100 text-red-700",
   };
 
-  const className = colors[status] || "bg-gray-100 text-gray-700";
-
   return (
     <span
-      className={`${className} text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap`}
-      aria-label={`Payment status: ${status}`}
+      className={`${colors[status] || "bg-gray-100 text-gray-700"} text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap`}
     >
       {status}
     </span>
   );
 };
 
-// Single payment record row
+/* ----------------------- Payment Row ----------------------- */
 const PaymentRecordRow = ({
   paymentId,
   requestNumber,
@@ -37,44 +34,37 @@ const PaymentRecordRow = ({
 }) => {
   return (
     <div className="border border-gray-300 rounded-md p-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0">
-      {/* Left side */}
+      {/* Left section */}
       <div className="text-sm md:text-base flex flex-col space-y-1 text-gray-800">
         <span className="font-semibold">{paymentId}</span>
-        <a href="#" className="text-blue-600 underline font-semibold">
-          {requestNumber}
-        </a>
+        <a className="text-blue-600 underline font-semibold">{requestNumber}</a>
         <span>{requesterName}</span>
         <span className="text-gray-500 text-xs">
-          Payment Method{" "}
-          <strong className="font-semibold">{paymentMethod}</strong>
+          Payment Method <strong>{paymentMethod}</strong>
         </span>
       </div>
 
-      {/* Right side */}
+      {/* Right section */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-5">
-        {status !== "Paid" && (
+        {status !== "Paid" ? (
           <button
             onClick={() => onMarkAsPaid(paymentId)}
             className="bg-green-600 text-white px-4 py-1 rounded-md hover:bg-green-700 transition"
-            aria-label={`Mark payment ${paymentId} as paid`}
           >
             Mark as Paid
           </button>
-        )}
-        {status === "Paid" && (
+        ) : (
           <button
             onClick={() => onMarkAsUnpaid(paymentId)}
             className="bg-yellow-600 text-white px-4 py-1 rounded-md hover:bg-yellow-700 transition"
-            aria-label={`Mark payment ${paymentId} as unpaid`}
           >
             Mark as Unpaid
           </button>
         )}
 
         <button
-          onClick={onViewDetails}
+          onClick={() => onViewDetails(paymentId)}
           className="border border-gray-400 text-gray-700 px-4 py-1 rounded-md hover:bg-gray-100 transition"
-          aria-label={`View details for payment ${paymentId}`}
         >
           View Details
         </button>
@@ -89,46 +79,63 @@ const PaymentRecordRow = ({
   );
 };
 
-// Modal for viewing payment details
+/* ----------------------- Payment Details Modal ----------------------- */
 const PaymentDetailsModal = ({ payment, onClose }) => {
   if (!payment) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold text-blue-900 mb-4">Payment Details</h2>
-        <div className="space-y-2">
+
+      {/* White Modal Box */}
+      <div className="relative bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-lg">
+
+        {/* Close Button (top-right) */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-4 text-gray-500 text-3xl leading-none hover:text-gray-700"
+        >
+          ×
+        </button>
+
+        {/* Header */}
+        <h2 className="text-xl font-bold text-center text-blue-900 mb-4">
+          Payment Details
+        </h2>
+
+        {/* Body Content */}
+        <div className="space-y-3 text-gray-700">
           <p><strong>Payment ID:</strong> {payment.paymentId}</p>
           <p><strong>Request Number:</strong> {payment.requestNumber}</p>
           <p><strong>Requester Name:</strong> {payment.requesterName}</p>
           <p><strong>Payment Method:</strong> {payment.paymentMethod}</p>
           <p><strong>Amount:</strong> ₱{payment.amount}</p>
-          <p><strong>Status:</strong> <StatusBadge status={payment.status} /></p>
+
+          <div className="flex items-center">
+            <strong className="mr-2">Status:</strong>
+            <StatusBadge status={payment.status} />
+          </div>
         </div>
-        <button
-          onClick={onClose}
-          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          Close
-        </button>
       </div>
     </div>
   );
 };
 
-// Confirmation modal for marking paid/unpaid
+
+/* ----------------------- Confirmation Modal ----------------------- */
 const ConfirmationModal = ({ isOpen, onConfirm, onCancel, action, paymentId }) => {
   if (!isOpen) return null;
 
-  const message = action === "paid" 
-    ? `Are you sure you want to mark payment ${paymentId} as Paid?`
-    : `Are you sure you want to mark payment ${paymentId} as Unpaid?`;
+  const message =
+    action === "paid"
+      ? `Are you sure you want to mark payment ${paymentId} as Paid?`
+      : `Are you sure you want to mark payment ${paymentId} as Unpaid?`;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h2 className="text-xl font-bold text-blue-900 mb-4">Confirm Action</h2>
         <p className="text-gray-700 mb-6">{message}</p>
+
         <div className="flex justify-end space-x-3">
           <button
             onClick={onCancel}
@@ -136,6 +143,7 @@ const ConfirmationModal = ({ isOpen, onConfirm, onCancel, action, paymentId }) =
           >
             Cancel
           </button>
+
           <button
             onClick={onConfirm}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -148,13 +156,17 @@ const ConfirmationModal = ({ isOpen, onConfirm, onCancel, action, paymentId }) =
   );
 };
 
-// ✅ Main PaymentTracking Page
+/* ----------------------- Main Payment Tracking Page ----------------------- */
 const PaymentTracking = () => {
   const navigate = useNavigate();
 
-  // States
+  /* --- States --- */
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+
   const [paymentRecords, setPaymentRecords] = useState([
     {
       id: 1,
@@ -184,14 +196,10 @@ const PaymentTracking = () => {
       status: "Pending",
     },
   ]);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // { action: 'paid' | 'unpaid', paymentId }
 
-  // Filter logic
+  /* --- Filtered List --- */
   const filteredPayments = paymentRecords.filter((record) => {
     const matchesSearch =
-      searchTerm === "" ||
       record.paymentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.requestNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.requesterName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -202,7 +210,7 @@ const PaymentTracking = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Convert data to CSV
+  /* ----------------------- CSV Export ----------------------- */
   const convertToCSV = (data) => {
     const headers = [
       "Payment ID",
@@ -213,84 +221,68 @@ const PaymentTracking = () => {
       "Status",
     ];
 
-    const csvRows = [];
-    csvRows.push(headers.join(","));
-    data.forEach((row) => {
-      const values = [
+    const rows = data.map((row) =>
+      [
         row.paymentId,
         row.requestNumber,
         row.requesterName,
         row.paymentMethod,
         row.amount,
         row.status,
-      ];
-      // Escape commas and quotes
-      const escapedValues = values.map((v) =>
-        `"${String(v).replace(/"/g, '""')}"`
-      );
-      csvRows.push(escapedValues.join(","));
-    });
-    return csvRows.join("\n");
+      ]
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",")
+    );
+
+    return [headers.join(","), ...rows].join("\n");
   };
 
-  // ✅ Export Handler
   const handleExportClick = () => {
     if (filteredPayments.length === 0) {
       alert("No data to export.");
       return;
     }
+
     const csv = convertToCSV(filteredPayments);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `payment_records_${Date.now()}.csv`);
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = `payment_records_${Date.now()}.csv`;
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
-  // Other Handlers
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleStatusChange = (e) => setStatusFilter(e.target.value);
-  const handleMarkAsPaid = (paymentId) => {
-    setConfirmAction({ action: "paid", paymentId });
-  };
-  const handleMarkAsUnpaid = (paymentId) => {
-    setConfirmAction({ action: "unpaid", paymentId });
-  };
-  const handleViewDetails = (paymentId) => {
-    const payment = paymentRecords.find((record) => record.paymentId === paymentId);
-    setSelectedPayment(payment);
-    setShowModal(true);
-  };
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedPayment(null);
-  };
+  /* --- Action Handlers --- */
+  const handleMarkAsPaid = (id) => setConfirmAction({ action: "paid", paymentId: id });
+  const handleMarkAsUnpaid = (id) => setConfirmAction({ action: "unpaid", paymentId: id });
+
   const confirmActionHandler = () => {
-    if (!confirmAction) return;
-    setPaymentRecords((prevRecords) =>
-      prevRecords.map((record) =>
-        record.paymentId === confirmAction.paymentId
-          ? { ...record, status: confirmAction.action === "paid" ? "Paid" : "Pending" }
-          : record
+    setPaymentRecords((records) =>
+      records.map((r) =>
+        r.paymentId === confirmAction.paymentId
+          ? { ...r, status: confirmAction.action === "paid" ? "Paid" : "Pending" }
+          : r
       )
     );
     setConfirmAction(null);
   };
-  const cancelActionHandler = () => {
-    setConfirmAction(null);
+
+  const handleViewDetails = (id) => {
+    setSelectedPayment(paymentRecords.find((r) => r.paymentId === id));
+    setShowModal(true);
   };
 
+  const closeModal = () => {
+    setSelectedPayment(null);
+    setShowModal(false);
+  };
+
+  /* ----------------------- Render ----------------------- */
   return (
     <AdminLayout>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-blue-900 mb-1">
-          Payment Tracking
-        </h1>
+        <h1 className="text-2xl font-bold text-blue-900">Payment Tracking</h1>
         <p className="text-gray-700 text-sm">
           Monitor payment status and transaction history
         </p>
@@ -299,7 +291,7 @@ const PaymentTracking = () => {
       {/* Search + Filter + Export */}
       <form
         onSubmit={(e) => e.preventDefault()}
-        className="flex flex-col md:flex-row items-center gap-4 mb-6"
+        className="flex flex-col md:flex-row items-center gap-4 mb-8 bg-gray-50 p-4 rounded-lg shadow-sm"
       >
         {/* Search bar */}
         <div className="relative flex-grow w-full md:w-auto">
@@ -307,30 +299,22 @@ const PaymentTracking = () => {
             type="text"
             placeholder="Search by name, ID, or request number..."
             value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full border border-gray-300 rounded-md pl-4 pr-20 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-            aria-label="Search payments"
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full border border-gray-300 rounded-md pl-4 pr-20 py-3 focus:ring-2 focus:ring-blue-600"
           />
-
           <button
             type="submit"
-            className="absolute right-0 top-0 h-full px-6 bg-blue-800 text-white rounded-r-md hover:bg-blue-900 transition flex items-center justify-center"
-            aria-label="Search button"
+            className="absolute right-0 top-0 h-full px-6 bg-blue-800 text-white rounded-r-md hover:bg-blue-900 flex items-center justify-center"
           >
-            <img
-              src={SearchIcon}
-              alt="Search"
-              className="w-5 h-5 object-contain filter invert brightness-0"
-            />
+            <img src={SearchIcon} alt="Search" className="w-5 h-5 filter brightness-0 invert" />
           </button>
         </div>
 
         {/* Status filter */}
         <select
           value={statusFilter}
-          onChange={handleStatusChange}
-          className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          aria-label="Filter by payment status"
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border border-gray-300 rounded-md px-4 py-3 focus:ring-2 focus:ring-blue-600"
         >
           <option>All Statuses</option>
           <option>Paid</option>
@@ -338,34 +322,25 @@ const PaymentTracking = () => {
           <option>Failed</option>
         </select>
 
-        {/* ✅ Export button */}
+        {/* Export */}
         <button
           type="button"
           onClick={handleExportClick}
-          className="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900 transition whitespace-nowrap"
-          aria-label="Export payment records"
+          className="bg-blue-800 text-white px-4 py-3 rounded-md hover:bg-blue-900 whitespace-nowrap"
         >
           Export
         </button>
       </form>
 
-      {/* Payment Records Section */}
-      <section
-        aria-label={`Payment Records (${filteredPayments.length})`}
-        className="border border-gray-300 rounded-md p-6 space-y-2 bg-white"
-      >
+      {/* Payment Records */}
+      <section className="border border-gray-300 rounded-md p-6 bg-white space-y-2">
         {filteredPayments.length === 0 ? (
           <p className="text-gray-600 italic">No payment records found.</p>
         ) : (
           filteredPayments.map((record) => (
             <PaymentRecordRow
               key={record.id}
-              paymentId={record.paymentId}
-              requestNumber={record.requestNumber}
-              requesterName={record.requesterName}
-              paymentMethod={record.paymentMethod}
-              amount={record.amount}
-              status={record.status}
+              {...record}
               onMarkAsPaid={handleMarkAsPaid}
               onMarkAsUnpaid={handleMarkAsUnpaid}
               onViewDetails={handleViewDetails}
@@ -375,14 +350,12 @@ const PaymentTracking = () => {
       </section>
 
       {/* Modals */}
-      {showModal && (
-        <PaymentDetailsModal payment={selectedPayment} onClose={closeModal} />
-      )}
+      {showModal && <PaymentDetailsModal payment={selectedPayment} onClose={closeModal} />}
       {confirmAction && (
         <ConfirmationModal
-          isOpen={!!confirmAction}
+          isOpen
           onConfirm={confirmActionHandler}
-          onCancel={cancelActionHandler}
+          onCancel={() => setConfirmAction(null)}
           action={confirmAction.action}
           paymentId={confirmAction.paymentId}
         />

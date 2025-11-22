@@ -1,6 +1,6 @@
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from rest_framework import serializers
-from users.models import User, Role
+from users.models import User, Role, RoleStatus, Department
 from requests.models import Request, RequestedDocuments, RequestPurpose, RequestStatus
 from doccatalog.models import DocumentType
 from notifications.models import Notification, Templates
@@ -439,11 +439,89 @@ class AdminNotifTemplatesSerializer(serializers.ModelSerializer):
 
         return data
 
-class AdminUserGetSerializer(serializers.ModelSerializer):
-    pass
 
-class AdminAddUserSerializer(serializers.ModelSerializer):
-    pass
+# --- Helper Serializers for Dropdowns ---
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['role_id', 'name', 'description']
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['department_id', 'name']
+
+
+class StatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoleStatus
+        fields = ['status_id', 'description']
+
+
+# --- READ Serializer (For the Card Display) ---
+class AdminUserListSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    # We use source to jump across foreign keys to get the actual names
+    role = serializers.CharField(source='role_id.name', read_only=True)
+    department = serializers.CharField(source='department_id.name', read_only=True)
+    status = serializers.CharField(source='status_id.description', read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'user_id', 'full_name', 'email_address', 'role',
+            'department', 'status', 'last_login', 'created_at'
+        ]
+
+    def get_full_name(self, obj):
+        # Handle potential None values gracefully
+        first = obj.first_name or ""
+        middle = obj.middle_name or ""
+        last = obj.last_name or ""
+        return f"{first} {middle} {last}".strip()
+
+
+# --- WRITE Serializer (For Add/Edit) ---
+class AdminUserCRUDSerializer(serializers.ModelSerializer):
+    # We explicitly define these to ensure they accept IDs for input
+    role_id = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all())
+    department_id = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), required=False,
+                                                       allow_null=True)
+    status_id = serializers.PrimaryKeyRelatedField(queryset=RoleStatus.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'first_name', 'middle_name', 'last_name',
+            'email_address', 'role_id', 'department_id',
+            'status_id', 'password', 'rfid_num'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},  # Password optional on Edit
+            'rfid_num': {'required': False}  # Making this optional for Admin creation if they don't have card yet
+        }
+
+    def create(self, validated_data):
+        # Hash the password before saving
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+
+        # Handle RFID if not provided (Assuming 0 as placeholder if your DB allows)
+        if 'rfid_num' not in validated_data:
+            validated_data['rfid_num'] = 0
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Only hash password if it's being changed
+        if 'password' in validated_data and validated_data['password']:
+            validated_data['password'] = make_password(validated_data['password'])
+        elif 'password' in validated_data:
+            # If empty password sent, remove it so we don't overwrite existing hash with empty string
+            validated_data.pop('password')
+
+        return super().update(instance, validated_data)
 
 '''
 5. USER MANAGEMENT

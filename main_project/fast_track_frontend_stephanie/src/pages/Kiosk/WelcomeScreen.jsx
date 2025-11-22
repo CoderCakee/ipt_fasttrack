@@ -1,20 +1,25 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import FastTrackLogo from "../../assets/logo.png";
-import background from "../../assets/background.webp";
+import KioskBackground from "../../components/KioskBackground";
 
 const WelcomeScreen = () => {
-    const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
 
-    const handleStartClick = () => {
-      navigate("/KioskServicesMenu"); // Navigate to KioskServicesMenu
+  const handleStartClick = () => {
+    setTimeout(() => {
+      navigate("/KioskServicesMenu");
+    }, 700);
   };
 
   return (
-    // Container with full screen height and flex column
-    <div className="min-h-screen flex flex-col">
-      {/* Top logo section */}
-      <header className="bg-gray-100 flex justify-center">
+    <div className="relative min-h-screen flex flex-col bg-[#2C3E9E] overflow-hidden">
+
+      {/* SAME BLUE OVERLAY SYSTEM */}
+      <KioskBackground opacity={15} blueOverlay={80} />
+
+      {/* Top Logo */}
+      <header className="relative z-10 bg-gray-100 flex justify-center">
         <img
           src={FastTrackLogo}
           alt="University Logo"
@@ -22,22 +27,13 @@ const WelcomeScreen = () => {
         />
       </header>
 
-      {/* Main section with background image and centered button */}
-      <main
-        className="flex-grow flex items-center justify-center bg-center bg-cover relative"
-        style={{
-          backgroundImage: `url(${background})`,
-        }}
-      >
-        {/* Overlay with semi-transparent blue filter */}
-        <div className="absolute inset-0 bg-blue-900 bg-opacity-75"></div>
-
-        {/* Centered button with hover effect, above overlay */}
+      {/* Center Button */}
+      <main className="relative z-10 flex-grow flex items-center justify-center">
         <button
-          className="relative px-12 py-4 bg-blue-800 text-white font-bold text-xl uppercase rounded-full shadow-lg hover:bg-blue-700 transition-colors"
           type="button"
-          aria-label="Click to start"
           onClick={handleStartClick}
+          aria-label="Click to start"
+          className="px-20 py-8 bg-blue-800 text-white font-bold text-3xl uppercase rounded-full shadow-2xl hover:bg-blue-700 hover:scale-105 transform transition-all duration-300"
         >
           CLICK TO START
         </button>

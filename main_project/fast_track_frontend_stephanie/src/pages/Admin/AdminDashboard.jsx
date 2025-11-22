@@ -162,7 +162,7 @@ const AdminDashboard = () => {
             ].map(({ label, value, icon }, index) => (
               <div
                 key={index}
-                className="flex items-center bg-yellow-700 text-white px-6 py-6 rounded-md flex-1 min-w-[220px] max-w-[400px] h-28"
+                className="flex items-center bg-yellow-600 text-white px-6 py-6 rounded-md flex-1 min-w-[220px] max-w-[400px] h-28"
               >
                 <div className="flex-grow">
                   <p className="text-lg font-semibold">{label}</p>

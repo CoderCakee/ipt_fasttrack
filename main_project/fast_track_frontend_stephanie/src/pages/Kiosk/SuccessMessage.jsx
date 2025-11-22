@@ -28,7 +28,7 @@ export default function SuccessMessage() {
       <main className="flex-grow flex items-center justify-center px-4">
         <div
           className={`
-            bg-white border-2 border-yellow-500 rounded-lg p-8 max-w-md w-full text-center shadow-lg
+            bg-white rounded-lg p-8 max-w-md w-full text-center shadow-lg
             transition-all duration-700 ease-out
             ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
           `}

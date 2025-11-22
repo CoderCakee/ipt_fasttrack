@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// KIOSK
+// Kiosk
 
 import WelcomeScreen from "../pages/Kiosk/WelcomeScreen";
 import KioskServicesMenu from "../pages/Kiosk/KioskServicesMenu"; 
@@ -15,11 +15,10 @@ import SuccessMessage from '../pages/Kiosk/SuccessMessage';
 import SingleDocumentReceipt from '../pages/Kiosk/SingleDocumentReceipt'; 
 
 import MultiSuccessMessage from '../pages/Kiosk/MultiSuccessMessage'; 
-import MultiDocumentReceipt from '../pages/Kiosk/MultiDocumentReceipt'; 
 import RegistrarInfo from '../pages/Kiosk/RegistrarInfo'; 
 
 
-// ADMIN
+// Admin
 import AdminLoginForm from '../pages/Admin/AdminLoginForm'; 
 import AdminDashboard from '../pages/Admin/AdminDashboard'; 
 import RequestManagement from '../pages/Admin/RequestManagement'; 
@@ -28,12 +27,19 @@ import NotificationManagement from '../pages/Admin/NotificationManagement';
 import UserManagement from '../pages/Admin/UserManagement'; 
 import Reports from '../pages/Admin/Reports'; 
 
-// WITHACCOUNT
-import LoginForm from '../pages/WithAccount/LoginForm'; 
-import Home from '../pages/WithAccount/Home'; 
+// AUFAccount
+import LoginForm from '../pages/AUFAccount/LoginForm'; 
+import Home from '../pages/AUFAccount/Home'; 
+import PaymentInfo from '../pages/AUFAccount/PaymentInfo'; 
+import RequestHistory from '../pages/AUFAccount/RequestHistory'; 
+import MyProfile from '../pages/AUFAccount/MyProfile'; 
+import ContactRegistrar from '../pages/AUFAccount/ContactRegistrar'; 
+import ViewDetails from '../pages/AUFAccount/ViewDetails'; 
 
-
-
+// AlumniAccount
+import HomeAlumni from '../pages/AlumniAccount/HomeAlumni'; 
+import CheckStatusAlumni from '../pages/AlumniAccount/CheckStatusAlumni'; 
+import RequestDetailsAlumni from '../pages/AlumniAccount/RequestDetailsAlumni'; 
 
 
 
@@ -46,7 +52,7 @@ function AppRoutes() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<WelcomeScreen/>} />
+        <Route path="/WelcomeScreen" element={<WelcomeScreen/>} />
         <Route path="/KioskServicesMenu" element={<KioskServicesMenu />} />
         <Route path="/CheckRequestStatus" element={<CheckRequestStatus />} />
         <Route path="/CheckRequestReceipt" element={<CheckRequestReceipt />} />
@@ -57,11 +63,10 @@ function AppRoutes() {
         <Route path="/SuccessMessage" element={<SuccessMessage />} />
         <Route path="/SingleDocumentReceipt" element={<SingleDocumentReceipt />} />
         <Route path="/MultiSuccessMessage" element={<MultiSuccessMessage />} />
-        <Route path="/MultiDocumentReceipt" element={<MultiDocumentReceipt />} />
         <Route path="/RegistrarInfo" element={<RegistrarInfo />} />
 
 
-
+        <Route path="/AdminLoginForm" element={<AdminLoginForm />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/RequestManagement" element={<RequestManagement />} />
         <Route path="/PaymentTracking" element={<PaymentTracking />} />
@@ -72,14 +77,16 @@ function AppRoutes() {
 
         <Route path="/LoginForm" element={<LoginForm />} />
         <Route path="/Home" element={<Home />} />
+        <Route path="/PaymentInfo" element={<PaymentInfo />} />
+        <Route path="/RequestHistory" element={<RequestHistory />} />
+        <Route path="/MyProfile" element={<MyProfile />} />
+        <Route path="/ContactRegistrar" element={<ContactRegistrar />} />        
+        <Route path="/ViewDetails" element={<ViewDetails />} />
+        <Route path="/HomeAlumni" element={<HomeAlumni />} />
+        <Route path="/CheckStatusAlumni" element={<CheckStatusAlumni />} />
+        <Route path="/RequestDetailsAlumni" element={<RequestDetailsAlumni />} />
 
 
-
-
-
-    
-
-      
       </Routes>
     </Router>
   );

@@ -168,6 +168,8 @@ CREATE TABLE users (
     role_id INTEGER NOT NULL,
     priority_id INTEGER, -- Nullable because some users don't have priority privilege
     status_id INTEGER, -- Nullable because this only applies for non-requester users
+    department_id INTEGER, -- Nullable because this only applies for non requester-users
+    rfid_num INTEGER NOT NULL,
     first_name VARCHAR(35) NOT NULL,
     middle_name VARCHAR(35),
     last_name VARCHAR(35), -- Nullable because some foreign students might not use last names
