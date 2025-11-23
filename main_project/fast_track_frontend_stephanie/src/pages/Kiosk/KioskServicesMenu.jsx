@@ -35,7 +35,7 @@ const KioskServicesMenu = () => {
 
       {/* ===== Left Panel ===== */}
       <div className="text-gold flex flex-col justify-center p-8 lg:w-1/3 rounded-br-[80px] bg-blue-800 shadow-xl">
-        <h1 className="text-6xl font-extrabold uppercase mb-6 text-yellow-500 tracking-widest">
+        <h1 className="text-5xl font-extrabold uppercase mb-6 text-yellow-500 tracking-widest">
           Welcome!
         </h1>
         <p className="text-white text-xl mb-8 max-w-xs leading-relaxed whitespace-nowrap">

@@ -35,7 +35,7 @@ const WelcomeScreen = () => {
           aria-label="Click to start"
           className="px-20 py-8 bg-blue-800 text-white font-bold text-3xl uppercase rounded-full shadow-2xl hover:bg-blue-700 hover:scale-105 transform transition-all duration-300"
         >
-          CLICK TO START
+          TAP TO START
         </button>
       </main>
     </div>

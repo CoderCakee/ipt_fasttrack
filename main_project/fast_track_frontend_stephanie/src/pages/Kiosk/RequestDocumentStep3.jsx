@@ -54,27 +54,11 @@ export default function RequestDocumentStep3() {
       <KioskBackground opacity={10} blueOpacity={80} />
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
+      <div className="w-full h-16">
         <KioskHeader />
       </div>
 
-      {/* Scrollable Content */}
-      <div 
-        className="flex-1 overflow-y-auto pt-24"
-        style={{
-          scrollbarWidth: 'none', // Firefox
-          msOverflowStyle: 'none', // IE/Edge
-        }}
-      >
-        <style>
-          {`
-            .scrollable-content::-webkit-scrollbar {
-              display: none; // Chrome, Safari, Opera
-            }
-          `}
-        </style>
-
-        <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 px-4 pb-10 mt-16">
             <main className="flex-grow flex justify-center items-start px-4 pb-8">
             <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-10 mx-auto">
               
@@ -235,6 +219,5 @@ export default function RequestDocumentStep3() {
           </main>
         </div>
       </div>
-    </div>
   );
 }

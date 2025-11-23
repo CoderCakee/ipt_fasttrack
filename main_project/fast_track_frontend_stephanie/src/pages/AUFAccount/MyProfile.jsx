@@ -56,7 +56,7 @@ const MyProfile = () => {
       <KioskBackground opacity={15} blueOpacity={80} />
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20">
+      <div className="w-full">
         <KioskHeader />
       </div>
 
@@ -77,7 +77,7 @@ const MyProfile = () => {
         </style>
 
         {/* Main container */}
-        <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-8 py-8 bg-white/95 rounded-2xl shadow-xl space-y-6 mb-8 border border-blue-200">
+        <div className="relative z-10 w-[92%] max-w-2xl mx-auto px-6 sm:px-8 py-8 bg-white/95 rounded-2xl shadow-xl space-y-6 mb-8 border border-blue-200 mt-20">
           
           {/* Back Button */}
           <button

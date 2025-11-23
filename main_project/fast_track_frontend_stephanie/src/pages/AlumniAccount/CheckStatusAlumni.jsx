@@ -58,7 +58,7 @@ export default function CheckStatusAlumni() {
       {/* Header */}
       <KioskHeader />
 
-      <main className="relative z-10 bg-white rounded-3xl max-w-lg w-full p-10 shadow-2xl flex flex-col items-center text-center border border-gray-200 space-y-6">
+      <main className="relative z-10 bg-white rounded-3xl max-w-lg w-full p-10 shadow-2xl flex flex-col items-center text-center border border-gray-200 space-y-6 mt-28">
         {/* Back Button */}
         <button
           type="button"

@@ -39,7 +39,6 @@ import ViewDetails from '../pages/AUFAccount/ViewDetails';
 // AlumniAccount
 import HomeAlumni from '../pages/AlumniAccount/HomeAlumni'; 
 import CheckStatusAlumni from '../pages/AlumniAccount/CheckStatusAlumni'; 
-import RequestDetailsAlumni from '../pages/AlumniAccount/RequestDetailsAlumni'; 
 
 
 
@@ -84,7 +83,6 @@ function AppRoutes() {
         <Route path="/ViewDetails" element={<ViewDetails />} />
         <Route path="/HomeAlumni" element={<HomeAlumni />} />
         <Route path="/CheckStatusAlumni" element={<CheckStatusAlumni />} />
-        <Route path="/RequestDetailsAlumni" element={<RequestDetailsAlumni />} />
 
 
       </Routes>

@@ -52,7 +52,7 @@ const ContactRegistrar = () => {
         <div className="min-h-screen flex flex-col justify-start">
 
           {/* Centered main content with white container */}
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 bg-white rounded-2xl shadow-lg mt-10 mb-10">
+          <div className="  w-[92%] max-w-2xl mx-auto px-4 py-8 bg-white rounded-2xl shadow-lg mt-10 mb-10 mt-28">
 
             {/* Back Button */}
             <button
