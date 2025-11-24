@@ -45,7 +45,7 @@ CREATE TABLE request_statuses (
 class Request(models.Model):
     request_id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey('users.User', on_delete=models.RESTRICT, db_column='user_id')
-    purpose_id = models.ForeignKey(RequestPurpose, on_delete=models.RESTRICT, db_column='purpose_id')
+    #purpose_id = models.ForeignKey(RequestPurpose, on_delete=models.RESTRICT, db_column='purpose_id')
     status_id = models.ForeignKey(RequestStatus, on_delete=models.RESTRICT, db_column='status_id')
     copy_amount = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     notes = models.TextField(null=True, blank=True)
@@ -81,6 +81,7 @@ class RequestedDocuments(models.Model):
     reqdoc_id = models.AutoField(primary_key=True)
     request_id = models.ForeignKey(Request, on_delete=models.CASCADE, db_column='request_id')
     doctype_id = models.ForeignKey('doccatalog.DocumentType', on_delete=models.RESTRICT, db_column='doctype_id')
+    purpose_id = models.ForeignKey(RequestPurpose, on_delete=models.RESTRICT, db_column='purpose_id', default=1)
     copy_amount = models.IntegerField(default=1, validators=[MinValueValidator(1)])
 
     def __str__(self):

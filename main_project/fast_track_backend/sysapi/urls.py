@@ -4,7 +4,8 @@ from .views import (check_request_number_view, check_request_by_student_view, ge
                     refresh_token_view, admin_dashboard_view, admin_request_manager_view,
                     admin_send_notification_view, admin_notification_history_view, admin_notification_templates_view,
                     admin_notification_template_detail_view, rfid_lookup_view, admin_user_detail_view,
-                    admin_user_management_view, admin_role_management_view, admin_utils_dropdowns)
+                    admin_user_management_view, admin_role_management_view, admin_utils_dropdowns,
+                    check_request_status_view)
 
 urlpatterns = [
     #Check Status
@@ -21,6 +22,7 @@ urlpatterns = [
     #Login
     path('login/', login_view, name='login'),
     path('refresh/', refresh_token_view, name='refresh'),
+    path('check-status-qr/', check_request_status_view, name='check-status-qr'),
     #Admin Dashboard
     path('admin-dashboard/home/', admin_dashboard_view, name='admin-dashboard'),
     path('admin-dashboard/request-management/', admin_request_manager_view, name='admin-request-management'),

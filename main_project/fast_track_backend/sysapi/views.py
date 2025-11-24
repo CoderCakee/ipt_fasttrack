@@ -197,6 +197,33 @@ const handleScan = async (scannedRfid) => {
     }
 };
 '''
+
+@api_view(['GET'])
+def check_request_status_view(request):
+    # We expect the QR code to contain the Request ID (e.g., "104" or "REQ-104")
+    # You might need to parse strings if you use prefixes.
+    request_id = request.query_params.get('id', None)
+
+    if not request_id:
+        return Response({"error": "No ID provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Assuming the QR contains the raw Integer ID.
+        # If your QR contains "REQ-105", use .replace('REQ-', '') or similar logic.
+        req_obj = Request.objects.get(request_id=request_id)
+
+        data = {
+            "request_id": req_obj.request_id,
+            "status": req_obj.status_id.description,  # Accessing the related status description
+            "purpose": req_obj.purpose_id.description,
+            "user_name": f"{req_obj.user_id.first_name} {req_obj.user_id.last_name}",
+            "created_at": req_obj.created_at,
+            # If you have released_at date, add it here
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    except (Request.DoesNotExist, ValueError):
+        return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
 # </editor-fold>
 
 # <editor-fold desc="Admin API Views">
@@ -342,8 +369,8 @@ def admin_dashboard_view(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+#@authentication_classes([TokenAuthentication])
+#@permission_classes([IsAuthenticated])
 def admin_request_manager_view(request):
     search_query = request.query_params.get('search', '').strip()
     status_id = request.query_params.get('status_id')

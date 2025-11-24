@@ -28,13 +28,34 @@ class RequestedDocumentCreateSerializer(serializers.ModelSerializer):
         queryset=DocumentType.objects.filter(is_enabled=True),
         source='doctype',
     )
+    # ADDED: Purpose is now validated here per document
+    purpose_id = serializers.PrimaryKeyRelatedField(
+        queryset=RequestPurpose.objects.all(),
+        source='purpose'
+    )
     copy_amount = serializers.IntegerField(min_value=1, default=1)
 
     class Meta:
         model = RequestedDocuments
         fields = [
             'doctype_id',
+            'purpose_id', # Add this
             'copy_amount',
+        ]
+
+class RequestedDocumentReceiptSerializer(serializers.ModelSerializer):
+    # Retrieve readable names instead of just IDs
+    document_name = serializers.CharField(source='doctype_id.name', read_only=True)
+    price = serializers.DecimalField(source='doctype_id.price', max_digits=10, decimal_places=2, read_only=True)
+    purpose_description = serializers.CharField(source='purpose_id.description', read_only=True)
+
+    class Meta:
+        model = RequestedDocuments
+        fields = [
+            'document_name',
+            'price',
+            'copy_amount',
+            'purpose_description'
         ]
 
 class CheckRequestNumberSerializer(serializers.ModelSerializer):
@@ -71,7 +92,9 @@ class CheckRequestByStudentSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=35)
     student_number = serializers.CharField(max_length=15)
 
+
 class RequestCreateSerializer(serializers.ModelSerializer):
+    # (Personal details remain the same...)
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True)
     middle_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -79,10 +102,8 @@ class RequestCreateSerializer(serializers.ModelSerializer):
     email_address = serializers.EmailField(write_only=True, required=False, allow_blank=True)
     mobile_number = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
-    purpose_id = serializers.PrimaryKeyRelatedField(
-        queryset=RequestPurpose.objects.all(),
-        source='purpose'
-    )
+    # REMOVED: purpose_id is no longer a global field
+
     requested_documents = RequestedDocumentCreateSerializer(write_only=True, many=True)
     notes = serializers.CharField(required=False, allow_blank=True)
 
@@ -90,10 +111,12 @@ class RequestCreateSerializer(serializers.ModelSerializer):
         model = Request
         fields = [
             'first_name', 'last_name', 'middle_name', 'student_number',
-            'email_address', 'mobile_number', 'purpose_id', 'requested_documents', 'notes'
+            'email_address', 'mobile_number', 'requested_documents', 'notes'
+            # REMOVED: 'purpose_id' from fields
         ]
 
     def validate(self, data):
+        # (Normalization logic remains the same...)
         def normalize_name(value):
             return value.strip().capitalize() if value else value
 
@@ -112,21 +135,18 @@ class RequestCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         requested_docs_data = validated_data.pop('requested_documents')
 
+        # (User creation/finding logic remains exactly the same...)
         def smart_capitalize(name: str) -> str:
             import re
-            if not name:
-                return name
+            if not name: return name
             name = re.sub(r'\s+', ' ', name.strip().lower())
 
             def fix_mc(match):
-                prefix = match.group(1).capitalize()
-                rest = match.group(2).capitalize()
-                return prefix + rest
+                return match.group(1).capitalize() + match.group(2).capitalize()
 
             parts = name.split()
-            lowercase_exceptions = {
-                "de", "del", "dela", "di", "du", "van", "von", "bin", "binti", "ibn", "al", "da", "la"
-            }
+            lowercase_exceptions = {"de", "del", "dela", "di", "du", "van", "von", "bin", "binti", "ibn", "al", "da",
+                                    "la"}
             formatted_parts = []
             for part in parts:
                 if part in lowercase_exceptions:
@@ -150,10 +170,8 @@ class RequestCreateSerializer(serializers.ModelSerializer):
         email = user_data.get('email_address')
         mobile = user_data.get('mobile_number')
 
-        if email:
-            user = User.objects.filter(email_address=email).first()
-        if not user and mobile:
-            user = User.objects.filter(mobile_number=mobile).first()
+        if email: user = User.objects.filter(email_address=email).first()
+        if not user and mobile: user = User.objects.filter(mobile_number=mobile).first()
 
         if user:
             updated = False
@@ -161,78 +179,57 @@ class RequestCreateSerializer(serializers.ModelSerializer):
                 if value and getattr(user, field) != value:
                     setattr(user, field, value)
                     updated = True
-            if updated:
-                user.save()
+            if updated: user.save()
         else:
             requester_role = Role.objects.get(pk=4)
             user = User.objects.create(**user_data, role_id=requester_role)
 
         request_status = RequestStatus.objects.get(description__iexact='requested')
+
+        # UPDATED: Create the parent Request WITHOUT purpose_id
         request_obj = Request.objects.create(
             user_id=user,
-            purpose_id=validated_data['purpose'],
             status_id=request_status,
             notes=validated_data.get('notes', '')
         )
 
+        # UPDATED: Loop through docs and save the purpose for EACH document
         for doc_data in requested_docs_data:
             RequestedDocuments.objects.create(
                 request_id=request_obj,
                 doctype_id=doc_data['doctype'],
+                purpose_id=doc_data['purpose'],  # Now saving purpose here
                 copy_amount=doc_data.get('copy_amount', 1)
             )
 
         return request_obj
 
+
 class RequestReceiptSerializer(serializers.ModelSerializer):
-    request_number = serializers.SerializerMethodField()
-    requester_name = serializers.SerializerMethodField()
-    requested_documents = serializers.SerializerMethodField()
-    total_amount = serializers.SerializerMethodField()
-    processing_time = serializers.SerializerMethodField()
+    # Fetch user details
+    first_name = serializers.CharField(source='user_id.first_name', read_only=True)
+    last_name = serializers.CharField(source='user_id.last_name', read_only=True)
+    middle_name = serializers.CharField(source='user_id.middle_name', read_only=True)
+    student_number = serializers.CharField(source='user_id.student_number', read_only=True)
+
+    # Nested serializer to get the list of docs with their names
+    requested_documents = RequestedDocumentReceiptSerializer(
+        source='requesteddocuments_set',
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Request
         fields = [
             'request_id',
-            'request_number',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'student_number',
             'created_at',
-            'requester_name',
-            'requested_documents',
-            'total_amount',
-            'processing_time'
+            'requested_documents',  # This contains the list defined above
         ]
-
-    def get_request_number(self, obj):
-        year = datetime.now().year
-        return f"FAST-{year}-{obj.request_id}"
-
-    def get_requester_name(self, obj):
-        u = obj.user_id
-        parts = [u.first_name, u.middle_name or '', u.last_name or '']
-        return " ".join(p for p in parts if p).strip()
-
-    def get_requested_documents(self, obj):
-        docs = RequestedDocuments.objects.filter(request_id=obj).select_related('doctype_id')
-        return [{
-            'document_name': d.doctype_id.name,
-            'copies': d.copy_amount,
-            'price_per_copy': float(d.doctype_id.price),
-            'subtotal': float(d.doctype_id.price) * d.copy_amount,
-            'purpose': obj.purpose_id.description
-        } for d in docs]
-
-    def get_total_amount(self, obj):
-        docs = RequestedDocuments.objects.filter(request_id=obj).select_related('doctype_id')
-        total = sum(float(d.doctype_id.price) * d.copy_amount for d in docs)
-        return float(total)
-
-    def get_processing_time(self, obj):
-        docs = RequestedDocuments.objects.filter(request_id=obj).select_related('doctype_id')
-        times = [d.doctype_id.processing_time for d in docs if d.doctype_id.processing_time]
-        if not times:
-            return None
-        return max(times, key=len)
 
 class LoginSerializer(serializers.ModelSerializer):
     email_address = serializers.EmailField(write_only=True)
@@ -320,8 +317,8 @@ class AdminRequestManagerSerializer(serializers.ModelSerializer):
     request_number = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     requested_documents = serializers.SerializerMethodField()
-    date_submitted = serializers.DateTimeField()
-    status = serializers.CharField(source='status_id.name')
+    date_submitted = serializers.DateTimeField(source='created_at', read_only=True)
+    status = serializers.CharField(source='status_id.description')
 
     class Meta:
         model = Request
@@ -330,7 +327,7 @@ class AdminRequestManagerSerializer(serializers.ModelSerializer):
             'request_number',
             'full_name',
             'user_id',
-            'status_id',
+            'status',
             'date_submitted',
             'requested_documents',
         ]
@@ -339,7 +336,7 @@ class AdminRequestManagerSerializer(serializers.ModelSerializer):
         current_year = datetime.now().year
         return f'FAST-{current_year}-{obj.request_id}'
 
-    def get_requester_name(self, obj):
+    def get_full_name(self, obj):
         u = obj.user_id
         parts = [u.first_name, u.middle_name or '', u.last_name or '']
         return " ".join(p for p in parts if p).strip()
