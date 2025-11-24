@@ -1,223 +1,195 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import infoIcon from "../../assets/infoblue.png";
+
+const API_BASE = "http://127.0.0.1:8000/api";
 
 export default function RequestDocumentStep3() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Redirect back if no state (user accessed page directly)
-  useEffect(() => {
-    if (!location.state || !location.state.personalInfo || !location.state.documents) {
-    }
-  }, [location.state, navigate]);
+  // REMOVED 'globalPurpose' because we are doing per-document purpose now
+  const { studentData, documents, notes } = location.state || {};
 
-  const { personalInfo = {}, documents = [], notes = "" } = location.state || {};
-
-  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
-  // Compute total amount
-  const totalAmount = documents.reduce(
-    (sum, doc) => sum + (doc.price || 0) * (doc.copies || 1),
-    0
-  );
-
-  const handleBack = () => navigate(-1);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!acceptedPrivacy) {
-      setError("Please accept the Data Privacy Act agreement to continue.");
-      return;
+  useEffect(() => {
+    // UPDATED CHECK: Only check for studentData and documents
+    if (!studentData || !documents) {
+      navigate("/RequestDocumentStep1");
     }
+  }, [studentData, documents, navigate]);
 
-    setError("");
-    setSubmitting(true);
-
-    // TODO: Replace with actual submission API call
-    setTimeout(() => {
-      setSubmitting(false);
-      navigate("/SuccessMessage");
-    }, 1500);
+  const calculateTotal = () => {
+    return documents?.reduce((acc, doc) => acc + (doc.price * doc.copies), 0) || 0;
   };
 
-  const formatCurrency = (amount) => `₱${amount.toLocaleString()}`;
+  const handleFinalSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+
+    try {
+      // 1. Construct Payload
+      const payload = {
+        first_name: studentData.firstName,
+        middle_name: studentData.middleName,
+        last_name: studentData.lastName,
+        student_number: studentData.studentId,
+        email_address: studentData.email,
+        mobile_number: studentData.phone,
+        notes: notes,
+
+        // 2. Map the documents
+        // USE THE SPECIFIC PURPOSE ID FROM THE DOCUMENT OBJECT
+        requested_documents: documents.map((doc) => ({
+          doctype_id: doc.doctype_id,
+          copy_amount: doc.copies,
+          purpose_id: doc.purpose_id // Using specific document purpose
+        })),
+      };
+
+      // 3. Send to Backend
+      const response = await axios.post(`${API_BASE}/request-create/`, payload);
+      console.log("Request Success:", response.data);
+
+      // 4. Navigate to Receipt
+      navigate("/RequestReceipt", {
+        state: { receiptData: response.data },
+      });
+
+    } catch (err) {
+      console.error(err);
+      const errorMsg =
+        err.response?.data?.error ||
+        JSON.stringify(err.response?.data) ||
+        "Failed to submit request. Please try again.";
+      setSubmitError(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!studentData || !documents) return null;
 
   return (
     <div className="min-h-screen relative flex flex-col bg-[#2C3E9E]">
       <KioskBackground opacity={10} blueOpacity={80} />
-
-      {/* Fixed Header */}
-      <div className="w-full h-16">
+      <div className="relative z-10 flex flex-col min-h-screen">
         <KioskHeader />
-      </div>
 
-      <div className="relative z-10 px-4 pb-10 mt-16">
-            <main className="flex-grow flex justify-center items-start px-4 pb-8">
-            <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full p-10 mx-auto">
-              
-              {/* Header */}
-              <div className="relative mb-6">
-                <button
-                  onClick={handleBack}
-                  type="button"
-                  className="absolute left-0 flex items-center text-blue-900 hover:text-blue-700 font-semibold transition"
-                  aria-label="Back to previous step"
-                >
-                  <ArrowLeftIcon className="h-5 w-5 mr-1" />
-                  Back
-                </button>
-                <h2 className="text-blue-900 font-bold text-2xl tracking-wide text-center select-none">
-                  Request Document
-                </h2>
-              </div>
+        <main className="flex-grow flex justify-center items-start px-4 pt-16 pb-8">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-10 mx-auto mt-12">
 
-              {/* Step indicator */}
-              <div className="flex justify-center items-center space-x-6 mb-10 w-2/3 max-w-sm mx-auto">
-                {[1, 2, 3].map((step) => (
-                  <React.Fragment key={step}>
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm select-none ${
-                        step <= 3 ? "bg-[#2039ad]" : "bg-gray-300 text-gray-700"
-                      }`}
-                    >
-                      {step}
-                    </div>
-                    {step !== 3 && <div className="flex-1 h-1 rounded bg-gray-300 mx-1"></div>}
-                  </React.Fragment>
-                ))}
-              </div>
-
-              {/* Review Section */}
-              <section className="border border-gray-300 rounded-lg p-6 mb-6">
-                <h3 className="font-semibold text-gray-900 mb-1 text-lg">
-                  Review Your Request
-                </h3>
-                <p className="text-gray-600 text-sm mb-6">
-                  Please verify all information
-                </p>
-
-                {/* Requester Information */}
-                <div className="mb-6">
-                  <h4 className="font-semibold text-blue-900 mb-2">Requester Information</h4>
-                  <dl className="text-gray-700 text-sm space-y-1">
-                    <div>
-                      <dt className="inline font-semibold">Name:</dt>{" "}
-                      <dd className="inline">
-                        {`${personalInfo.firstName || ""} ${personalInfo.middleName || ""} ${personalInfo.lastName || ""}`.trim()}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-semibold">Student #:</dt>{" "}
-                      <dd className="inline">{personalInfo.studentId || ""}</dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-semibold">Email:</dt>{" "}
-                      <dd className="inline">{personalInfo.email || ""}</dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-semibold">Contact:</dt>{" "}
-                      <dd className="inline">{personalInfo.phone || ""}</dd>
-                    </div>
-                    <div>
-                      <dt className="inline font-semibold">Relationship:</dt>{" "}
-                      <dd className="inline">{personalInfo.relationship || ""}</dd>
-                    </div>
-                  </dl>
-                </div>
-
-                {/* Notes */}
-                {notes && (
-                  <div className="mb-4 text-gray-700 text-sm">
-                    <strong>Notes / Remarks:</strong> {notes}
-                  </div>
-                )}
-
-                {/* Documents Requested */}
-                <div>
-                  <h4 className="font-semibold text-blue-900 mb-2">Documents Requested</h4>
-                  <ul className="divide-y divide-gray-300 text-gray-700 text-sm">
-                    {documents.map(({ doctype_id, name, copies, purposeDescription, price }) => (
-                      <li key={doctype_id} className="flex justify-between py-3">
-                        <div>
-                          <p className="font-semibold text-gray-900">{name}</p>
-                          <p className="text-xs text-gray-500">
-                            {copies} {copies === 1 ? "copy" : "copies"} • {purposeDescription || ""}
-                          </p>
-                        </div>
-                        <div className="font-semibold text-gray-900">
-                          {formatCurrency((price || 0) * (copies || 1))}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Total Amount */}
-                <div className="flex justify-between items-center mt-6 border-t border-gray-300 pt-4">
-                  <span className="font-semibold text-gray-900">Total Amount:</span>
-                  <span className="font-bold text-yellow-600 text-lg">{formatCurrency(totalAmount)}</span>
-                </div>
-
-                {/* Info Box */}
-                <div className="mt-4 flex items-center space-x-2 bg-[#E6EEF9] rounded border border-[#A6D0F5] px-4 py-2 text-sm text-[#3C6FC4]">
-                  <img src={infoIcon} alt="Info" className="w-5 h-5 object-contain" />
-                  <p className="flex-1">
-                    Processing usually takes 3–5 working days. You will receive an
-                    email with payment instructions and your request number.
-                  </p>
-                </div>
-
-                {/* Data Privacy Checkbox */}
-                <label className="flex items-start space-x-3 mt-4">
-                  <input
-                    type="checkbox"
-                    checked={acceptedPrivacy}
-                    onChange={(e) => setAcceptedPrivacy(e.target.checked)}
-                    className="form-checkbox mt-1 h-4 w-4 text-yellow-600"
-                    aria-required="true"
-                  />
-                  <span className="text-sm text-gray-700">
-                    I understand that all personal information provided will be used
-                    solely for processing my document request in compliance with the
-                    Data Privacy Act.
-                  </span>
-                </label>
-
-                {error && <p className="text-red-600 mt-2 text-sm">{error}</p>}
-              </section>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="flex-1 border border-blue-800 text-blue-800 rounded px-4 py-3 font-semibold hover:bg-[#2c3e9e] hover:text-white transition"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  disabled={!acceptedPrivacy || submitting}
-                  onClick={handleSubmit}
-                  className={`flex-1 rounded px-4 py-3 font-semibold text-white transition ${
-                    acceptedPrivacy
-                      ? "bg-yellow-600 hover:bg-yellow-700"
-                      : "bg-gray-300 cursor-not-allowed"
-                  }`}
-                >
-                  {submitting ? "Submitting..." : "Submit Request"}
-                </button>
-              </div>
+            {/* Back Button */}
+            <div className="relative mb-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="absolute left-0 flex items-center text-blue-900 hover:text-blue-700 font-semibold transition"
+              >
+                <ArrowLeftIcon className="h-5 w-5 mr-1" />
+                Back
+              </button>
+              <h2 className="text-blue-900 font-bold text-2xl tracking-wide text-center select-none">
+                Review Request
+              </h2>
             </div>
-          </main>
-        </div>
+
+            {/* Progress Bar (Step 3) */}
+            <div className="flex justify-center items-center space-x-6 mb-8 w-2/3 max-w-sm mx-auto">
+              {[1, 2, 3].map((step) => (
+                <React.Fragment key={step}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm bg-[#2039ad] select-none">
+                    {step}
+                  </div>
+                  {step !== 3 && <div className="flex-1 h-1 rounded bg-[#2039ad] mx-1"></div>}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Error Message */}
+            {submitError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center text-sm">
+                {submitError}
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {/* Student Summary */}
+              <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-sm space-y-2">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-bold text-blue-900">Requesting As:</span>
+                  <span className="text-gray-900">
+                    {studentData.firstName} {studentData.lastName} ({studentData.studentId})
+                  </span>
+                </div>
+                {/* Removed Global Purpose display since it's now per document */}
+              </div>
+
+              {/* Document Table */}
+              <div className="bg-white rounded border border-gray-200 overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        Document Details
+                      </th>
+                      <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                        Qty
+                      </th>
+                      <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                        Subtotal
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {documents.map((doc, idx) => (
+                      <tr key={idx}>
+                        <td className="px-4 py-2 text-sm text-gray-900">
+                          <div className="font-bold">{doc.name}</div>
+                          {/* Display the specific purpose for this document */}
+                          <div className="text-xs text-gray-500">Purpose: {doc.purpose_name}</div>
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-900 text-center">
+                          {doc.copies}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                          ₱{doc.price * doc.copies}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="bg-gray-50 px-4 py-3 border-t flex justify-between items-center">
+                  <span className="font-bold text-blue-900">Total Amount</span>
+                  <span className="font-bold text-xl text-[#C5A93D]">
+                    ₱{calculateTotal()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {notes && (
+                <div className="bg-yellow-50 p-3 rounded border border-yellow-200 text-sm">
+                  <span className="font-bold text-gray-700">Notes:</span> {notes}
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                onClick={handleFinalSubmit}
+                disabled={submitting}
+                className="w-full bg-[#C5A93D] hover:bg-yellow-600 text-white font-semibold py-4 rounded uppercase tracking-widest transition shadow-lg disabled:opacity-70"
+              >
+                {submitting ? "Submitting Request..." : "CONFIRM & SUBMIT"}
+              </button>
+            </div>
+          </div>
+        </main>
       </div>
+    </div>
   );
 }
