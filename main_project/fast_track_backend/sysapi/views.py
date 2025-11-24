@@ -3,13 +3,14 @@ from django.db.models import Count, Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.hashers import check_password, make_password
+from django.core.mail import send_mail
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from requests.models import Request, RequestPurpose
+from requests.models import Request, RequestPurpose, RequestedDocuments
 from users.models import User, Role, RoleStatus, Department
 from users.auth import TokenAuthentication
 from doccatalog.models import DocumentType
@@ -24,6 +25,7 @@ from .serializers import (CheckRequestNumberSerializer, CheckRequestByStudentSer
 
 from hardware_scripts.gsm import *
 from hardware_scripts.printer import *
+import traceback
 
 from datetime import datetime, timedelta, UTC
 import jwt
@@ -83,6 +85,88 @@ def check_request_by_student_view(request):
         'total_requests': requests.count(),
         'requests': req_serializer.data
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def check_request_qr_view(request):
+    # 1. Get the ID from URL
+    raw_id = request.query_params.get('id', None)
+
+    if not raw_id:
+        return Response({"error": "No ID provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # 2. Clean the ID (If QR is "FAST-2025-105", this grabs just "105")
+        # If your QR is just "105", this still works fine.
+        clean_id = str(raw_id).strip().split('-')[-1]
+
+        # 3. Fetch Request & Related Data
+        req_obj = Request.objects.select_related('user_id', 'status_id').get(request_id=clean_id)
+        related_docs = RequestedDocuments.objects.filter(request_id=req_obj).select_related('doctype_id', 'purpose_id')
+
+        # 4. Calculate Total Amount & Build Document List
+        docs_data = []
+        total_amount = 0
+
+        for doc in related_docs:
+            price = doc.doctype_id.price if doc.doctype_id.price else 0
+            subtotal = price * doc.copy_amount
+            total_amount += subtotal
+
+            docs_data.append({
+                "document_name": doc.doctype_id.name,
+                "price": price,
+                "purpose_description": doc.purpose_id.description if doc.purpose_id else "N/A",
+                "copy_amount": doc.copy_amount
+            })
+
+        # 5. Format Fields
+        # Format: FAST-YYYY-ID (Using created_at year ensures the ID never changes)
+        formatted_req_number = f"FAST-{req_obj.created_at.year}-{req_obj.request_id}"
+
+        # Format: November 24, 2025 10:30 AM
+        formatted_date = req_obj.created_at.strftime('%B %d, %Y %I:%M %p')
+
+        # 6. Determine Completion % (Optional Helper)
+        status_text = req_obj.status_id.description
+        completion_percent = 25
+        if status_text.lower() in ['processing', 'pending']:
+            completion_percent = 50
+        elif status_text.lower() == 'released':
+            completion_percent = 75
+        elif status_text.lower() == 'document received':
+            completion_percent = 100
+
+        # 7. Construct Final Response
+        data = {
+            "request_id": req_obj.request_id,
+
+            # --- FIXED FIELDS ---
+            "formatted_request_number": formatted_req_number,
+            "date_requested": formatted_date,
+            "total_amount": f"{total_amount} PHP",
+            # --------------------
+
+            "status": status_text,
+            "completion_percent": completion_percent,
+
+            # User Info
+            "first_name": req_obj.user_id.first_name,
+            "last_name": req_obj.user_id.last_name,
+            "student_number": getattr(req_obj.user_id, 'student_number', "N/A"),
+            "email": getattr(req_obj.user_id, 'email', getattr(req_obj.user_id, 'email_address', "")),
+
+            "requested_documents": docs_data
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+    except Request.DoesNotExist:
+        return Response({"error": f"Request ID {clean_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        print(traceback.format_exc())
+        return Response({"error": f"SERVER CRASH: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def get_request_details_view(request, request_id):
@@ -198,32 +282,59 @@ const handleScan = async (scannedRfid) => {
 };
 '''
 
+
 @api_view(['GET'])
 def check_request_status_view(request):
-    # We expect the QR code to contain the Request ID (e.g., "104" or "REQ-104")
-    # You might need to parse strings if you use prefixes.
-    request_id = request.query_params.get('id', None)
+    # 1. Get the ID from the "?id=" part of the URL
+    raw_id = request.query_params.get('id', None)
 
-    if not request_id:
+    if not raw_id:
         return Response({"error": "No ID provided."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        # Assuming the QR contains the raw Integer ID.
-        # If your QR contains "REQ-105", use .replace('REQ-', '') or similar logic.
-        req_obj = Request.objects.get(request_id=request_id)
+        clean_id = str(raw_id).strip()
+
+        # 2. Fetch the Request
+        req_obj = Request.objects.select_related('user_id', 'status_id').get(request_id=clean_id)
+
+        # 3. Fetch Related Documents
+        related_docs = RequestedDocuments.objects.filter(request_id=req_obj).select_related('doctype_id', 'purpose_id')
+
+        docs_data = []
+        for doc in related_docs:
+            docs_data.append({
+                # --- CHECK THESE FIELD NAMES IN YOUR MODELS ---
+                "document_name": doc.doctype_id.name,  # Does DocumentType have a 'name' field?
+                "price": doc.doctype_id.price,  # Does DocumentType have a 'price' field?
+                "purpose_description": doc.purpose_id.description if doc.purpose_id else "N/A",
+                # Does RequestPurpose have 'description'?
+                "copy_amount": doc.copy_amount
+            })
 
         data = {
             "request_id": req_obj.request_id,
-            "status": req_obj.status_id.description,  # Accessing the related status description
-            "purpose": req_obj.purpose_id.description,
-            "user_name": f"{req_obj.user_id.first_name} {req_obj.user_id.last_name}",
+            "status": req_obj.status_id.description,  # Does RequestStatus have 'description'?
+
+            # --- CHECK THESE USER FIELDS ---
+            "first_name": req_obj.user_id.first_name,
+            "last_name": req_obj.user_id.last_name,
+            "middle_name": getattr(req_obj.user_id, 'middle_name', ""),
+            "student_number": getattr(req_obj.user_id, 'student_number', ""),
+            "email": req_obj.user_id.email_address,
+
             "created_at": req_obj.created_at,
-            # If you have released_at date, add it here
+            "requested_documents": docs_data
         }
+
         return Response(data, status=status.HTTP_200_OK)
 
-    except (Request.DoesNotExist, ValueError):
-        return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Request.DoesNotExist:
+        return Response({"error": f"Request ID {clean_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        # --- THIS IS THE IMPORTANT PART ---
+        # This will send the specific python error to your browser
+        return Response({"error": f"SERVER CRASH: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # </editor-fold>
 
 # <editor-fold desc="Admin API Views">
@@ -397,16 +508,36 @@ def admin_request_manager_view(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+#@authentication_classes([TokenAuthentication])
+#@permission_classes([IsAuthenticated])
 def admin_send_notification_view(request):
     serializer = AdminSendNotifSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        #EMAIL/SMS LOGIC (Scripts)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        notification = serializer.save()
+
+        if notification.type.lower() == 'email':
+            try:
+                send_mail(
+                    subject=getattr(notification, '_subject', "No Subject"),
+                    message=notification.message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[notification.user_id.email_address],  # your custom user field
+                    fail_silently=False,
+                )
+                notification.status = 'sent'
+                notification.save()
+            except Exception as e:
+                notification.status = 'failed'
+                notification.save()
+                return Response(
+                    {"error": f"Failed to send email: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        return Response(AdminSendNotifSerializer(notification).data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])

@@ -5,6 +5,7 @@ from requests.models import Request, RequestedDocuments, RequestPurpose, Request
 from doccatalog.models import DocumentType
 from notifications.models import Notification, Templates
 from datetime import datetime
+from django.contrib.auth import get_user_model
 
 class RequestedDocumentCheckSerializer(serializers.ModelSerializer):
     doctype_id = serializers.PrimaryKeyRelatedField(
@@ -91,7 +92,6 @@ class CheckRequestByStudentSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=35)
     last_name = serializers.CharField(max_length=35)
     student_number = serializers.CharField(max_length=15)
-
 
 class RequestCreateSerializer(serializers.ModelSerializer):
     # (Personal details remain the same...)
@@ -203,7 +203,6 @@ class RequestCreateSerializer(serializers.ModelSerializer):
             )
 
         return request_obj
-
 
 class RequestReceiptSerializer(serializers.ModelSerializer):
     # Fetch user details
@@ -347,21 +346,22 @@ class AdminRequestManagerSerializer(serializers.ModelSerializer):
         return serializer.data
 
 class AdminSendNotifSerializer(serializers.ModelSerializer):
-    #POST
-    recipient = serializers.PrimaryKeyRelatedField(
+    # Map "recipient" to Notification.user_id
+    recipient = serializers.SlugRelatedField(
+        slug_field='email_address',  # your custom email field
         queryset=User.objects.all(),
         source='user_id'
     )
     request_number = serializers.CharField(write_only=True, required=False)
-    subject = serializers.CharField(required=False, allow_blank=True)
-    template_id = serializers.IntegerField(required=False, allow_null=True)
+    subject = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    template_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Notification
         fields = [
             'notif_id',
             'type',
-            'recipient',
+            'recipient',       # maps to user_id
             'request_number',
             'message',
             'subject',
@@ -373,7 +373,11 @@ class AdminSendNotifSerializer(serializers.ModelSerializer):
         read_only_fields = ['notif_id', 'status', 'created_at', 'sent_at']
 
     def create(self, validated_data):
+        # Extract extra fields
         request_number = validated_data.pop('request_number', None)
+        subject = validated_data.pop('subject', "")
+        template_id = validated_data.pop('template_id', None)
+
         reference_table = 'requests'
         reference_id = None
 
@@ -389,6 +393,9 @@ class AdminSendNotifSerializer(serializers.ModelSerializer):
         validated_data['reference_id'] = reference_id
 
         notification = Notification.objects.create(**validated_data)
+        # Attach subject and template_id to instance for use in the view
+        notification._subject = subject
+        notification._template_id = template_id
         return notification
 
 class AdminNotifHistorySerializer(serializers.ModelSerializer):

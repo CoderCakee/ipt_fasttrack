@@ -1,39 +1,65 @@
-// components/QRScanningModal.jsx
 import React from "react";
-import { QrCodeIcon } from "@heroicons/react/24/outline"; // Assuming Heroicons is available
+import { Scanner } from "@yudiel/react-qr-scanner";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
-export default function QRScanningModal({ visible, onCancel }) {
-  if (!visible) return null; // Don't render if not visible
+const QRScanningModal = ({ visible, onCancel, onScan }) => {
+  if (!visible) return null;
+
+  const handleScan = (detectedCodes) => {
+    // This library returns an array of detected codes
+    if (detectedCodes && detectedCodes.length > 0) {
+      const rawValue = detectedCodes[0].rawValue;
+      onScan(rawValue);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-white rounded-lg p-8 flex flex-col items-center shadow-2xl max-w-sm w-full mx-4">
-        {/* Icon */}
-        <div className="mb-4">
-          <QrCodeIcon className="h-16 w-16 text-blue-600 animate-pulse" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full relative">
+
+        {/* Header */}
+        <div className="bg-[#2C3E9E] p-4 flex justify-between items-center">
+          <h3 className="text-white font-bold text-lg">Scan QR Code</h3>
+          <button onClick={onCancel} className="text-white hover:text-gray-300">
+            <XMarkIcon className="h-6 w-6" />
+          </button>
         </div>
-        
-        {/* Spinner */}
-        <div className="loader mb-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+
+        {/* Camera Viewport */}
+        <div className="p-4 bg-black">
+          <div className="relative border-4 border-[#C5A93D] rounded-lg overflow-hidden h-64">
+            <Scanner
+                onScan={handleScan}
+                onError={(error) => console.log(error)}
+                components={{
+                    audio: false, // Disable beep sound if desired
+                    torch: false,
+                }}
+                styles={{
+                    container: { width: "100%", height: "100%" }
+                }}
+            />
+
+            {/* Scanning Overlay Line */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-red-500 shadow-lg animate-scan-line"></div>
+          </div>
+          <p className="text-white text-center text-xs mt-2">
+            Align QR code within the frame
+          </p>
         </div>
-        
-        {/* Text */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Scanning QR Code</h3>
-        <p className="text-gray-600 text-center mb-4">
-          Please hold your QR code steady in front of the scanner. This may take a few seconds.
-        </p>
-        
-        {/* Optional Cancel Button */}
-        {onCancel && (
+
+        {/* Manual Cancel Button */}
+        <div className="p-4">
           <button
             onClick={onCancel}
-            className="mt-4 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-md transition"
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded transition"
           >
             Cancel
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default QRScanningModal;

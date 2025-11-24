@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import KioskHeader from "../../components/KioskHeader";
 import KioskBackground from "../../components/KioskBackground";
 import nextStepIcon from "../../assets/nextstep.png";
 import infoIcon from "../../assets/infoblue.png";
 
-// Progress steps
+const API_BASE = "http://127.0.0.1:8000/api";
+
 const progressSteps = [
   { id: 1, label: "Request Received" },
   { id: 2, label: "Processing" },
@@ -16,198 +18,174 @@ const progressSteps = [
 const CheckRequestReceipt = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [data, setData] = useState(location.state?.data || null);
-  const [loading, setLoading] = useState(!data);
 
-  // Extract request_number from URL query if present
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const requestNumber = params.get("request_number");
+    const fetchRequestData = async () => {
+      // 1. Get ID from URL (e.g., ...?id=105)
+      const params = new URLSearchParams(location.search);
+      const requestId = params.get("id");
 
-    if (!data) {
-      setLoading(true);
-      setTimeout(() => {
-        const fetchedData = {
-          first_name: "John",
-          last_name: "Doe",
-          student_number: "2023-12345",
-          request_number: requestNumber || "REQ-0001",
-          date_requested: "2025-11-10",
-          documents: [{ doctype_name: "Transcript of Records" }],
-          total_amount: "500 PHP",
-          request_status: "Processing",
-          completion_percent: 50,
-        };
-        setData(fetchedData);
+      if (!requestId) {
+        // If no ID, go back to scanner
+        navigate("/CheckRequestStatus");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        // 2. Fetch fresh data from Backend
+        const response = await axios.get(`${API_BASE}/check-request-qr/?id=${requestId}`);
+        setData(response.data);
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setError("Request not found. Please check the ID and try again.");
+      } finally {
         setLoading(false);
-      }, 500); // Simulated fetch delay
-    }
-  }, [data, location.search]);
+      }
+    };
 
+    fetchRequestData();
+  }, [location.search, navigate]);
+
+  // --- LOADING STATE ---
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#2C3E9E] text-white">
-        <p>Loading request details...</p>
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="font-serif tracking-wider">Retrieving Request Details...</p>
+        </div>
       </div>
     );
   }
 
-  // Prepare fields
-  const requester_name = `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim() || "N/A";
-  const student_number = data.student_number ?? "N/A";
-  const request_number = data.request_number ?? "N/A";
-  const date_requested = data.date_requested || data.date || "N/A";
-  const documents = Array.isArray(data.documents) ? data.documents : [];
-  const total_amount = data.total_amount || data.total || "N/A";
-  const status = data.request_status ?? data.status ?? "Processing";
-  const completion_percent = data.completion_percent ?? 50;
+  // --- ERROR STATE ---
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#2C3E9E] text-white p-6">
+        <KioskBackground opacity={10} blueOpacity={80} />
+        <div className="relative z-10 text-center bg-white/10 p-8 rounded-xl backdrop-blur-md border border-white/20 shadow-2xl max-w-md w-full">
+          <p className="text-xl font-bold mb-2">Error</p>
+          <p className="mb-6 text-sm opacity-90">{error}</p>
+          <button
+            onClick={() => navigate("/CheckRequestStatus")}
+            className="bg-[#C5A93D] hover:bg-[#b09532] text-white px-8 py-3 rounded-lg font-bold uppercase tracking-widest text-sm transition-all shadow-lg"
+          >
+            Scan Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  // Determine current step based on status
+  // --- DATA MAPPING ---
+  // Using the exact fields from your Python View
+  const requester_name = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+  const student_number = data.student_number || "N/A";
+  const request_number = data.formatted_request_number || `REQ-${data.request_id}`;
+  const date_requested = data.date_requested || "N/A";
+  const documents = data.requested_documents || [];
+  const total_amount = data.total_amount || "0 PHP";
+  const status = data.status || "Processing";
+  const completion_percent = data.completion_percent || 0;
+
+  // Calculate Progress Step
   const statusLower = status.toLowerCase();
   let currentStep = 2;
-  if (statusLower === "request received" || statusLower === "received") currentStep = 1;
-  else if (statusLower === "processing") currentStep = 2;
-  else if (statusLower === "released") currentStep = 3;
-  else if (statusLower === "document received") currentStep = 4;
+  if (statusLower.includes("received") && !statusLower.includes("document")) currentStep = 1;
+  else if (statusLower.includes("processing") || statusLower.includes("pending")) currentStep = 2;
+  else if (statusLower.includes("released") || statusLower.includes("ready")) currentStep = 3;
+  else if (statusLower.includes("document received") || statusLower.includes("completed")) currentStep = 4;
 
-  // Navigation handlers
-  const handleCheckAnother = () => setTimeout(() => navigate("/CheckRequestStatus"), 700);
-  const handleDone = () => setTimeout(() => navigate("/KioskServicesMenu"), 700);
+  const handleCheckAnother = () => navigate("/CheckRequestStatus");
+  const handleDone = () => navigate("/KioskServicesMenu");
 
   return (
     <div className="relative min-h-screen flex justify-center items-center bg-[#2C3E9E] p-6 overflow-hidden">
       <KioskBackground opacity={10} blueOpacity={80} />
       <KioskHeader />
 
-      <div className="relative z-10 bg-white rounded-xl max-w-[900px] w-full flex flex-col lg:flex-row p-8 shadow-xl overflow-hidden">
-        
-        {/* Left Section: Request Details */}
-        <div className="w-full lg:w-3/5 pr-0 lg:pr-8 mb-6 lg:mb-0">
-          <h2 className="text-center text-lg font-serif text-black mb-6">Request Details</h2>
+      <div className="relative z-10 bg-white rounded-xl max-w-[900px] w-full flex flex-col lg:flex-row p-8 shadow-xl overflow-hidden mt-16 animate-fade-in-up">
 
-          {/* Requester Information */}
+        {/* Left Section: Details */}
+        <div className="w-full lg:w-3/5 pr-0 lg:pr-8 mb-6 lg:mb-0">
+          <h2 className="text-center text-xl font-serif text-blue-900 mb-6 font-bold tracking-wide">Request Details</h2>
+
           <div className="grid grid-cols-2 gap-y-6 text-sm font-serif text-[#2c3e9e]">
             <div>
-              <p className="text-xs font-semibold mb-1">Requester’s Name</p>
-              <p className="text-black font-medium text-base">{requester_name}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Requester Name</p>
+              <p className="text-black font-semibold text-base capitalize">{requester_name}</p>
 
-              <p className="mt-6 text-xs font-semibold mb-1">Request Number</p>
-              <p className="text-black font-medium">{request_number}</p>
+              <p className="mt-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Request Number</p>
+              <p className="text-black font-semibold">{request_number}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold mb-1">Student Number</p>
-              <p className="text-black font-medium">{student_number}</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Student Number</p>
+              <p className="text-black font-semibold">{student_number}</p>
 
-              <p className="mt-6 text-xs font-semibold mb-1">Date Requested</p>
-              <p className="text-black font-medium">{date_requested}</p>
+              <p className="mt-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Date Requested</p>
+              <p className="text-black font-semibold">{date_requested}</p>
             </div>
           </div>
 
-          <hr className="border-[0.5px] border-[#acc3dc] w-full my-6" />
+          <hr className="border-t border-gray-200 w-full my-6" />
 
-          {/* Documents Requested */}
           <div>
-            <p className="mb-2 text-m font-semibold font-serif text-[#2c3e9e]">Document(s) Requested</p>
+            <p className="mb-3 text-sm font-bold font-serif text-[#2c3e9e] uppercase tracking-wide">Document(s) Requested</p>
             {documents.length > 0 ? (
-              <div className="flex flex-wrap gap-2 mb-1">
-                {documents.map((doc) => (
-                  <span
-                    key={doc.doctype_id || doc.reqdoc_id || doc.doctype_name}
-                    className="inline-flex items-center bg-[#2c3e9e] text-white text-xs font-medium px-3 py-1 rounded-full shadow"
-                  >
-                    {doc.doctype_name ?? doc.name ?? "Document"}
-                  </span>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {documents.map((doc, index) => (
+                  <div key={index} className="inline-flex items-center bg-blue-50 border border-blue-100 text-blue-900 text-xs px-3 py-1.5 rounded-md shadow-sm">
+                    <span className="font-semibold">{doc.document_name}</span>
+                    <span className="ml-2 bg-blue-200 text-blue-800 text-[10px] px-1.5 rounded font-bold">x{doc.copy_amount}</span>
+                  </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs italic mb-1">N/A</p>
+              <p className="text-xs text-gray-500 italic mb-2">No documents listed</p>
             )}
-            <p className="italic text-yellow-600 text-xs font-serif font-medium mt-1">
-              <em>Total Amount:</em> {total_amount}
+            <p className="text-yellow-600 text-sm font-serif font-bold mt-2 flex items-center">
+              Total Amount: <span className="ml-2 text-lg">{total_amount}</span>
             </p>
           </div>
 
-          <hr className="border border-[#acc3dc] w-full my-6" />
+          <hr className="border-t border-gray-200 w-full my-6" />
 
-          {/* Status & Completion */}
-          <div className="mb-6 flex flex-col space-y-2">
-            <p className="text-sm font-semibold font-serif text-[#2c3e9e]">Current Status</p>
-            <div className="flex items-center w-full">
-              <button
-                type="button"
-                className="inline-flex items-center bg-[#2c3e9e] text-white text-sm rounded-full px-4 py-1 shadow font-semibold flex-none"
-              >
+          {/* Status Bar */}
+          <div className="mb-6">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Current Status</p>
+            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <span className="inline-flex items-center bg-[#2c3e9e] text-white text-sm rounded px-3 py-1 font-bold capitalize shadow-sm">
                 {status}
-              </button>
-              <span className="ml-auto text-sm font-semibold font-serif text-[#2c3e9e]">
+              </span>
+              <span className="text-sm font-bold text-[#2c3e9e]">
                 {completion_percent}% Complete
               </span>
             </div>
           </div>
 
-          {/* Enhanced Progress Tracker */}
-          <div className="w-full mb-6">
+          {/* Progress Tracker Visual */}
+          <div className="w-full mb-2 px-2">
             <div className="relative">
-              {/* Track Background */}
-              <div className="absolute top-6 left-0 w-full h-1 bg-gray-200 rounded-full"></div>
-
-              {/* Track Fill */}
+              <div className="absolute top-5 left-0 w-full h-1 bg-gray-200 rounded-full"></div>
               <div
-                className="absolute top-6 left-0 h-1 bg-gradient-to-r from-[#2C3E9E] to-[#4A5FC1] rounded-full transition-all duration-1000 ease-out"
+                className="absolute top-5 left-0 h-1 bg-[#2C3E9E] rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${((currentStep - 1) / (progressSteps.length - 1)) * 100}%` }}
               ></div>
-
-              {/* Steps */}
               <ol className="flex items-center justify-between relative">
                 {progressSteps.map((step, idx) => {
                   const isActive = idx + 1 === currentStep;
                   const isCompleted = idx + 1 < currentStep;
                   return (
-                    <li key={step.id} className="relative flex-1 flex flex-col items-center group">
-                      {/* Step Circle */}
-                      <div className="flex items-center justify-center">
-                        <div
-                          className={`h-12 w-12 rounded-full flex items-center justify-center text-white font-bold shadow-xl transition-all duration-500 transform ${
-                            isCompleted
-                              ? "bg-gradient-to-br from-blue-400 to-blue-500 shadow-blue-400/50"
-                              : isActive
-                              ? "bg-gradient-to-br from-[#2C3E9E] to-[#4A5FC1] shadow-blue-500/50 animate-bounce"
-                              : "bg-gray-300 shadow-gray-400/50"
-                          }`}
-                        >
-                          {isCompleted ? (
-                            <svg
-                              className="w-6 h-6"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          ) : isActive ? (
-                            <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
-                          ) : (
-                            <span className="text-gray-600">{step.id}</span>
-                          )}
-                        </div>
+                    <li key={step.id} className="relative flex flex-col items-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-md z-10 transition-colors duration-300 ${isCompleted || isActive ? "bg-[#2C3E9E] text-white" : "bg-white border-2 border-gray-300 text-gray-400"}`}>
+                         {isCompleted ? "✓" : step.id}
                       </div>
-
-                      {/* Step Label */}
-                      <div className="mt-3 text-center">
-                        <span
-                          className={`text-sm font-semibold transition-colors duration-300 ${
-                            isActive || isCompleted ? "text-[#2C3E9E]" : "text-gray-500"
-                          }`}
-                        >
-                          {step.label}
-                        </span>
-                        {isActive && (
-                          <div className="mt-1 text-xs text-[#4A5FC1] font-medium">In Progress</div>
-                        )}
-                      </div>
+                      <span className={`mt-2 text-[10px] font-bold uppercase tracking-wider ${isCompleted || isActive ? "text-[#2C3E9E]" : "text-gray-400"}`}>{step.label}</span>
                     </li>
                   );
                 })}
@@ -216,53 +194,46 @@ const CheckRequestReceipt = () => {
           </div>
         </div>
 
-        {/* Right Section: Next Step & Info */}
-        <div className="w-full lg:w-2/5 flex flex-col justify-between">
-          <div className="mt-6 p-4 text-sm text-gray-800 font-serif">
-            {/* Header with Icon */}
-            <div className="flex items-center gap-2 mb-2">
-              <img src={nextStepIcon} alt="Next Step Icon" className="h-5 w-5" />
-              <h3 className="font-semibold text-base">Next Step</h3>
-            </div>
-            <p className="text-[#2c3e9e]">
-              Please wait for an SMS/email notification when your documents are ready.
-            </p>
-          </div>
+        {/* Right Section */}
+        <div className="w-full lg:w-2/5 flex flex-col pl-0 lg:pl-8 border-t lg:border-t-0 lg:border-l border-gray-200 mt-6 lg:mt-0 pt-6 lg:pt-0">
+           {/* ... (Right section content remains largely the same, just visual tweaks) ... */}
+           <div className="flex-grow">
+              <div className="flex items-center gap-2 mb-3">
+                <img src={nextStepIcon} alt="Next" className="h-6 w-6" />
+                <h3 className="font-bold text-blue-900 text-lg">Next Step</h3>
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-6">
+                {currentStep === 1 && "The registrar is verifying your request details."}
+                {currentStep === 2 && "Please wait for an SMS/Email notification when your documents are ready."}
+                {currentStep === 3 && "Your documents are ready! Proceed to the window to claim them."}
+                {currentStep === 4 && "This request has been completed."}
+              </p>
 
-          <aside className="mt-6 bg-yellow-100 p-4 text-sm font-serif leading-relaxed shadow-sm">
-            <p>
-              <strong>Estimated completion:</strong> 2-3 business days <br />
-              <strong>Pickup Location:</strong> Registrar’s Office, <br />
-              2nd Floor, AUF Main Building <br />
-              <strong>Notes:</strong> Documents are currently being processed by the Registrar.
-            </p>
-          </aside>
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
+                <h4 className="text-yellow-800 font-bold text-xs uppercase mb-2">Estimated Completion</h4>
+                <p className="text-gray-800 text-sm">2-3 business days</p>
+                <h4 className="text-yellow-800 font-bold text-xs uppercase mt-3 mb-2">Pickup Location</h4>
+                <p className="text-gray-800 text-sm">Registrar’s Office, 2nd Floor, AUF Main Building</p>
+              </div>
 
-          <div className="mt-6 flex items-start space-x-3 text-xs text-gray-700 font-serif">
-            <img src={infoIcon} alt="Information Icon" className="w-5 h-5 mt-[2px] flex-shrink-0" />
-            <p>
-              If you are a representative, ensure you have the authorization letter and
-              the requester’s valid ID when picking up the documents.
-            </p>
-          </div>
+               <div className="flex gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <img src={infoIcon} alt="Info" className="w-5 h-5 flex-shrink-0" />
+                <p className="text-xs text-blue-900 leading-snug">
+                  <strong>Representative?</strong> Ensure you have the authorization letter and the requester’s valid ID.
+                </p>
+              </div>
+           </div>
 
-          {/* Action Buttons */}
-          <div className="mt-auto flex justify-end space-x-4">
-            <button
-              onClick={handleCheckAnother}
-              className="w-72 border-2 border-[#2c3e9e] text-[#2c3e9e] text-sm rounded-md py-2 hover:bg-[#2c3e9e] hover:text-white transition-all duration-300 hover:shadow-md"
-            >
-              Check Another Request
-            </button>
-
-            <button
-              onClick={handleDone}
-              className="w-72 bg-[#2C3E9E] text-white text-sm rounded-md py-2 hover:bg-[#1f2c6e]"
-            >
-              Done
-            </button>
-          </div>
+           <div className="mt-8 space-y-3">
+             <button onClick={handleCheckAnother} className="w-full border-2 border-[#2C3E9E] text-[#2C3E9E] font-bold uppercase text-sm py-3 rounded-lg hover:bg-blue-50 transition">
+                Check Another Request
+             </button>
+             <button onClick={handleDone} className="w-full bg-[#2C3E9E] text-white font-bold uppercase text-sm py-3 rounded-lg hover:bg-[#1a2b88] transition shadow-lg">
+                Done
+             </button>
+           </div>
         </div>
+
       </div>
     </div>
   );

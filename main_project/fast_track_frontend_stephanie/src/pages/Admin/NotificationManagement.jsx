@@ -99,13 +99,40 @@ FAST Track Team`,
   }, [template, requestNumber, templates]);
 
   // Handlers
-  const handleSendNotification = (e) => {
-    e.preventDefault();
-    alert(
-      `Notification Sent!\nType: ${notificationType}\nRecipient: ${recipient}\nRequest Number: ${requestNumber}\nSubject: ${subject}\nMessage:\n${message}\nSend Immediately: ${sendImmediately}`
-    );
-    // TODO: Implement real API call here
+const handleSendNotification = async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    type: notificationType,
+    recipient: recipient, // user_id (Primary key) if you're using user IDs, email otherwise
+    request_number: requestNumber,
+    subject: subject,
+    message: message,
+    template_id: null,  // or selected template ID
   };
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/admin-dashboard/notifications/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // "Authorization": `Token ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert("Notification successfully sent!");
+    } else {
+      alert("Error sending notification: " + JSON.stringify(data));
+    }
+  } catch (error) {
+    alert("Network error: " + error.message);
+  }
+};
+
 
   const handleAddTemplate = (e) => {
     e.preventDefault();

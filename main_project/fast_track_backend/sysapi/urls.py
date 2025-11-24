@@ -5,11 +5,11 @@ from .views import (check_request_number_view, check_request_by_student_view, ge
                     admin_send_notification_view, admin_notification_history_view, admin_notification_templates_view,
                     admin_notification_template_detail_view, rfid_lookup_view, admin_user_detail_view,
                     admin_user_management_view, admin_role_management_view, admin_utils_dropdowns,
-                    check_request_status_view)
+                    check_request_status_view, check_request_qr_view)
 
 urlpatterns = [
     #Check Status
-    path('check-request-number/', check_request_number_view, name='check-request-number'),
+    path('check-request-qr/', check_request_qr_view, name='check-request-qr'),
     path('check-request-by-student/', check_request_by_student_view, name='check-request-by-student'),
     path('check-request-details/<int:request_id>/', get_request_details_view, name='get-request-details'),
     #Request Documents
