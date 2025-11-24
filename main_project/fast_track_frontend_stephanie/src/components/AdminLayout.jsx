@@ -34,7 +34,7 @@ const AdminLayout = ({ children }) => {
   const confirmLogout = () => {
     setLogoutModalOpen(false);
     alert("You have been logged out.");
-    navigate("/AdminLogin"); // Redirect to login page or root
+    navigate("/AdminLoginForm"); // Redirect to login page or root
   };
 
   const sidebarItems = [
