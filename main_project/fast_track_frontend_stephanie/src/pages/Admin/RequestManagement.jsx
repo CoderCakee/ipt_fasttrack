@@ -104,6 +104,7 @@ const RequestManagement = () => {
     navigate("/NotificationManagement", {
       state: {
         recipient: req.email,
+        contactNumber: req.contact_number,   
         requestNumber: req.request_id,
         notificationType: "Email",
       },

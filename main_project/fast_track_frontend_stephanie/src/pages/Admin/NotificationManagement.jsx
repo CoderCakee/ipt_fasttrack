@@ -20,7 +20,16 @@ const NotificationManagement = () => {
   const [message, setMessage] = useState("");
   const [sendImmediately, setSendImmediately] = useState(false);
 
-  // Notification templates data - now stateful for adding new ones
+  // 🔥 AUTO-UPDATE RECIPIENT WHEN NOTIFICATION TYPE CHANGES
+  useEffect(() => {
+    if (notificationType === "Email") {
+      setRecipient(prefill.recipient || "");
+    } else if (notificationType === "SMS") {
+      setRecipient(prefill.contactNumber || "");
+    }
+  }, [notificationType, prefill]);
+
+  // Notification templates
   const [templates, setTemplates] = useState([
     {
       id: 1,
@@ -54,12 +63,12 @@ FAST Track Team`,
     },
   ]);
 
-  // States for add template modal
+  // Modal states
   const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
   const [newTemplateTitle, setNewTemplateTitle] = useState("");
   const [newTemplateContent, setNewTemplateContent] = useState("");
 
-  // Placeholder notifications history
+  // Placeholder notification history
   const [notifications] = useState([
     {
       subject: "Test Email",
@@ -79,7 +88,7 @@ FAST Track Team`,
     },
   ]);
 
-  // Update subject and message when template changes
+  // Update subject/message when template changes
   useEffect(() => {
     if (!template) {
       setSubject("");
@@ -88,7 +97,6 @@ FAST Track Team`,
     }
     const selectedTemplate = templates.find((t) => t.title === template);
     if (selectedTemplate) {
-      // Replace placeholder with actual request number if any
       const content = selectedTemplate.content.replace(
         /#{requestNumber}/g,
         requestNumber || "N/A"
@@ -98,20 +106,20 @@ FAST Track Team`,
     }
   }, [template, requestNumber, templates]);
 
-  // Handlers
+  // Send handler
   const handleSendNotification = (e) => {
     e.preventDefault();
     alert(
       `Notification Sent!\nType: ${notificationType}\nRecipient: ${recipient}\nRequest Number: ${requestNumber}\nSubject: ${subject}\nMessage:\n${message}\nSend Immediately: ${sendImmediately}`
     );
-    // TODO: Implement real API call here
   };
 
+  // Add template handler
   const handleAddTemplate = (e) => {
     e.preventDefault();
     if (!newTemplateTitle.trim() || !newTemplateContent.trim()) return;
     const newTemplate = {
-      id: Date.now(), // Simple ID generation
+      id: Date.now(),
       title: newTemplateTitle,
       content: newTemplateContent,
     };
@@ -121,7 +129,7 @@ FAST Track Team`,
     setShowAddTemplateModal(false);
   };
 
-  // Simple mail icon
+  // Icons
   const MailIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -130,7 +138,6 @@ FAST Track Team`,
       viewBox="0 0 24 24"
       stroke="currentColor"
       strokeWidth={2}
-      aria-hidden="true"
     >
       <path
         strokeLinecap="round"
@@ -140,7 +147,6 @@ FAST Track Team`,
     </svg>
   );
 
-  // Notification history item card
   const NotificationItem = ({
     subject,
     recipient,
@@ -176,7 +182,6 @@ FAST Track Team`,
   return (
     <AdminLayout>
       <div className="p-6 bg-white rounded-md shadow-sm">
-        {/* Page Title */}
         <h1 className="text-blue-900 font-bold text-2xl mb-1">
           Notification Management
         </h1>
@@ -187,7 +192,7 @@ FAST Track Team`,
         {/* Tabs */}
         <div className="flex space-x-3 mb-6 bg-gray-100 rounded-md overflow-hidden w-max">
           <button
-            className={`px-4 py-2 rounded-l-md transition ${
+            className={`px-4 py-2 ${
               activeTab === "send"
                 ? "bg-blue-900 text-white"
                 : "text-gray-700 hover:bg-gray-200"
@@ -197,7 +202,7 @@ FAST Track Team`,
             Send Notification
           </button>
           <button
-            className={`px-4 py-2 transition ${
+            className={`px-4 py-2 ${
               activeTab === "history"
                 ? "bg-blue-900 text-white"
                 : "text-gray-700 hover:bg-gray-200"
@@ -207,7 +212,7 @@ FAST Track Team`,
             Notification History
           </button>
           <button
-            className={`px-4 py-2 rounded-r-md transition ${
+            className={`px-4 py-2 ${
               activeTab === "templates"
                 ? "bg-blue-900 text-white"
                 : "text-gray-700 hover:bg-gray-200"
@@ -218,7 +223,7 @@ FAST Track Team`,
           </button>
         </div>
 
-        {/* Tab Panels */}
+        {/* SEND TAB */}
         {activeTab === "send" && (
           <form
             onSubmit={handleSendNotification}
@@ -227,13 +232,13 @@ FAST Track Team`,
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Notification Type */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="text-xs font-semibold text-gray-700">
                   Notification Type
                 </label>
                 <select
                   value={notificationType}
                   onChange={(e) => setNotificationType(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-900 text-gray-700"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700"
                 >
                   <option value="Email">Email</option>
                   <option value="SMS">SMS</option>
@@ -242,7 +247,7 @@ FAST Track Team`,
 
               {/* Recipient */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="text-xs font-semibold text-gray-700">
                   Recipient
                 </label>
                 <input
@@ -255,33 +260,33 @@ FAST Track Team`,
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                   required
-                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-900"
+                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700"
                 />
               </div>
 
               {/* Request Number */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Request Number (Optional)
+                <label className="text-xs font-semibold text-gray-700">
+                  Request Number
                 </label>
                 <input
                   type="text"
                   placeholder="FAST-2024-001234"
                   value={requestNumber}
                   onChange={(e) => setRequestNumber(e.target.value)}
-                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-900"
+                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700"
                 />
               </div>
 
-              {/* Template Dropdown */}
+              {/* Template */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="text-xs font-semibold text-gray-700">
                   Use Template
                 </label>
                 <select
                   value={template}
                   onChange={(e) => setTemplate(e.target.value)}
-                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-900"
+                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700"
                 >
                   <option value="">No Template</option>
                   {templates.map((t) => (
@@ -295,7 +300,7 @@ FAST Track Team`,
               {/* Subject */}
               {notificationType === "Email" && (
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="text-xs font-semibold text-gray-700">
                     Subject
                   </label>
                   <input
@@ -303,15 +308,15 @@ FAST Track Team`,
                     placeholder="Enter notification subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
+                    className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700"
                     required
-                    className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-900"
                   />
                 </div>
               )}
 
               {/* Message */}
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="text-xs font-semibold text-gray-700">
                   Message
                 </label>
                 <textarea
@@ -319,8 +324,8 @@ FAST Track Team`,
                   placeholder="Enter your message here..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700"
                   required
-                  className="w-full rounded-md bg-gray-200 px-3 py-2 text-gray-700 placeholder-gray-500 resize-y focus:outline-none focus:ring-2 focus:ring-blue-900"
                 />
               </div>
             </div>
@@ -331,24 +336,22 @@ FAST Track Team`,
                 type="checkbox"
                 checked={sendImmediately}
                 onChange={(e) => setSendImmediately(e.target.checked)}
-                className="rounded border-gray-300 text-blue-900 focus:ring-blue-900"
+                className="rounded border-gray-300"
               />
-              <label className="select-none text-gray-700 text-sm">
-                Send Immediately
-              </label>
+              <label className="text-sm text-gray-700">Send Immediately</label>
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
-              className="mt-4 w-full bg-yellow-700 hover:bg-yellow-800 text-white font-semibold rounded-md py-3 flex justify-center items-center gap-2 transition"
+              className="mt-4 w-full bg-yellow-700 hover:bg-yellow-800 text-white font-semibold rounded-md py-3"
             >
               Send Notification
             </button>
           </form>
         )}
 
-        {/* Notification History Tab */}
+        {/* HISTORY TAB */}
         {activeTab === "history" && (
           <div className="text-gray-600">
             {notifications.map((item, index) => (
@@ -357,33 +360,23 @@ FAST Track Team`,
           </div>
         )}
 
-        {/* Templates Tab */}
+        {/* TEMPLATES TAB */}
         {activeTab === "templates" && (
-          <section
-            id="templates-panel"
-            role="tabpanel"
-            aria-labelledby="templates-tab"
-            className="border border-blue-200 rounded-md p-6 bg-white space-y-6"
-          >
+          <section className="border border-blue-200 rounded-md p-6 bg-white space-y-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-gray-800 font-semibold">Notification Templates</h2>
               <button
                 onClick={() => setShowAddTemplateModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition shadow-sm"
-                aria-label="Add new template"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
                 Add New Template
               </button>
             </div>
 
             {templates.map(({ id, title, content }) => (
-              <div
-                key={id}
-                className="border border-gray-300 rounded-md bg-gray-50 p-4"
-                aria-label={`Template: ${title}`}
-              >
+              <div key={id} className="border border-gray-300 bg-gray-50 p-4 rounded-md">
                 <h3 className="font-semibold mb-2">{title}</h3>
-                <pre className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
+                <pre className="text-xs text-gray-700 whitespace-pre-wrap">
                   {content}
                 </pre>
               </div>
@@ -391,51 +384,51 @@ FAST Track Team`,
           </section>
         )}
 
-        {/* Add Template Modal */}
+        {/* ADD TEMPLATE MODAL */}
         {showAddTemplateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg p-6 max-w-lg w-full shadow-xl">
-              <h2 className="text-xl font-bold text-blue-900 mb-6">Add New Template</h2>
+              <h2 className="text-xl font-bold text-blue-900 mb-6">
+                Add New Template
+              </h2>
               <form onSubmit={handleAddTemplate} className="space-y-4">
                 <div>
-                  <label htmlFor="templateTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="text-sm font-medium text-gray-700">
                     Template Title
                   </label>
                   <input
                     type="text"
-                    id="templateTitle"
                     value={newTemplateTitle}
                     onChange={(e) => setNewTemplateTitle(e.target.value)}
                     required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    placeholder="Enter template title"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="templateContent" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="text-sm font-medium text-gray-700">
                     Template Content
                   </label>
                   <textarea
-                    id="templateContent"
                     value={newTemplateContent}
                     onChange={(e) => setNewTemplateContent(e.target.value)}
-                    required
                     rows={6}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    placeholder="Enter template content"
+                    required
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
                   />
                 </div>
+
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
                     onClick={() => setShowAddTemplateModal(false)}
-                    className="border border-gray-400 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100 transition"
+                    className="border border-gray-400 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                   >
                     Add Template
                   </button>
